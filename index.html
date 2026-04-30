@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poker Range Builder</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <h1>Poker Range Builder</h1>
+    <p>Construis et mémorise tes ranges préflop par position</p>
+  </div>
+  <div class="header-actions">
+    <a href="premium.html" class="pro-link">Passer Pro ✦</a>
+    <span class="save-status" id="saveStatus">Chargement…</span>
+  </div>
+</header>
+
+<main>
+
+  <section class="row">
+    <span class="row-label">Position</span>
+    <div id="posTabs" class="tabs-group"></div>
+    <div class="antes-wrap">
+      <input type="checkbox" id="antesChk">
+      <label for="antesChk">Antes en jeu</label>
+    </div>
+  </section>
+
+  <section class="row">
+    <span class="row-label">Situation</span>
+    <div id="sitTabs" class="tabs-group"></div>
+  </section>
+
+  <div class="ctx-box" id="ctxBox"></div>
+
+  <div class="top-bar">
+    <div class="legend" id="legend"></div>
+    <div class="stat" id="stat"></div>
+  </div>
+
+  <div class="grid-wrap">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn" id="btnClear">Effacer la situation</button>
+    <button class="btn btn-accent" id="btnExport">Exporter texte</button>
+    <button class="btn btn-accent" id="btnExportAll">Exporter tout</button>
+    <button class="btn btn-accent" id="btnPng">Exporter PNG</button>
+  </div>
+
+  <div class="export-area" id="exportArea">
+    <h3>Copier ce texte</h3>
+    <pre id="exportText"></pre>
+    <button class="btn" id="btnCopy">Copier</button>
+  </div>
+
+  <div class="notes-section">
+    <h2>Notes par situation</h2>
+    <div class="notes-grid" id="notesGrid"></div>
+  </div>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

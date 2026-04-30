@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poker Range Builder — Version Pro</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .premium-page { max-width: 560px; margin: 60px auto; padding: 0 20px; text-align: center; }
+    .premium-page h2 { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+    .premium-page .subtitle { font-size: 13px; color: var(--text2); margin-bottom: 36px; }
+
+    .plan-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px 24px;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .plan-card.featured { border-color: #e8c040; }
+
+    .plan-name  { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+    .plan-price { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .plan-price span { font-size: 13px; font-weight: 400; color: var(--text2); }
+    .plan-desc  { font-size: 12px; color: var(--text2); margin-bottom: 20px; }
+
+    .feature-list { list-style: none; margin-bottom: 24px; }
+    .feature-list li {
+      font-size: 12px;
+      color: var(--text2);
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .feature-list li:last-child { border-bottom: none; }
+    .feature-list .check  { color: #7ecc7e; flex-shrink: 0; }
+    .feature-list .locked { color: var(--text3); flex-shrink: 0; }
+
+    .btn-unlock {
+      display: block;
+      width: 100%;
+      padding: 11px;
+      border-radius: 8px;
+      border: none;
+      background: #e8c040;
+      color: #0f0f0f;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-unlock:hover { opacity: 0.88; }
+    .btn-unlock.disabled {
+      background: var(--bg3);
+      color: var(--text3);
+      border: 1px solid var(--border);
+      cursor: default;
+    }
+    .btn-unlock.disabled:hover { opacity: 1; }
+
+    .coming-soon {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 600;
+      background: var(--bg3);
+      color: var(--text3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      font-size: 11px;
+      color: var(--text3);
+      text-decoration: none;
+    }
+    .back-link:hover { color: var(--text2); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <h1>Poker Range Builder</h1>
+    <p>Passer à la version Pro</p>
+  </div>
+  <div class="header-actions">
+    <a href="index.html" class="pro-link" style="color:var(--text2);border-color:var(--border)">← Retour</a>
+  </div>
+</header>
+
+<div class="premium-page">
+  <h2>Maîtrise ton jeu préflop</h2>
+  <p class="subtitle">La version gratuite te donne accès aux grilles de ranges.<br>
+     La version Pro ajoute les outils pour les apprendre et les analyser.</p>
+
+  <!-- FREE -->
+  <div class="plan-card">
+    <div class="plan-name">Gratuit</div>
+    <div class="plan-price">0 € <span>/ toujours</span></div>
+    <div class="plan-desc">Pour construire et visualiser tes ranges.</div>
+    <ul class="feature-list">
+      <li><span class="check">✓</span> Grille 13×13 interactive</li>
+      <li><span class="check">✓</span> 6 positions (BTN, CO, HJ, UTG, SB, BB)</li>
+      <li><span class="check">✓</span> Avec / sans antes</li>
+      <li><span class="check">✓</span> Sauvegarde automatique</li>
+      <li><span class="check">✓</span> Export texte &amp; PNG</li>
+      <li><span class="check">✓</span> Notes par situation</li>
+    </ul>
+    <a href="index.html" class="btn-unlock" style="display:block;text-align:center;text-decoration:none;padding:11px;">
+      Continuer gratuitement
+    </a>
+  </div>
+
+  <!-- PRO -->
+  <div class="plan-card featured">
+    <div class="plan-name">Pro ✦</div>
+    <div class="plan-price">— <span>bientôt disponible</span></div>
+    <div class="plan-desc">Pour mémoriser et tester tes ranges en profondeur.</div>
+    <ul class="feature-list">
+      <li><span class="check">✓</span> Tout le gratuit</li>
+      <li><span class="locked">✦</span> Quiz préflop interactif <span class="coming-soon">à venir</span></li>
+      <li><span class="locked">✦</span> Import / Export JSON <span class="coming-soon">à venir</span></li>
+      <li><span class="locked">✦</span> Historique de sessions <span class="coming-soon">à venir</span></li>
+      <li><span class="locked">✦</span> Comparaison de ranges <span class="coming-soon">à venir</span></li>
+      <li><span class="locked">✦</span> Stats d'évolution <span class="coming-soon">à venir</span></li>
+    </ul>
+    <button class="btn-unlock disabled" disabled>
+      Débloquer la version Pro — bientôt disponible
+    </button>
+  </div>
+
+  <a href="index.html" class="back-link">← Retourner au Range Builder</a>
+</div>
+
+</body>
+</html>
