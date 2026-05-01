@@ -82,6 +82,171 @@
       text-decoration: none;
     }
     .back-link:hover { color: var(--text2); }
+
+    /* ── QUIZ ── */
+    .quiz-section {
+      max-width: 560px;
+      margin: 48px auto 0;
+      padding: 0 20px 60px;
+    }
+    .quiz-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .quiz-section-sub {
+      font-size: 11px;
+      color: var(--text3);
+      margin-bottom: 20px;
+    }
+    .quiz-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px 24px;
+    }
+
+    /* start screen */
+    .quiz-start-inner { text-align: center; }
+    .quiz-start-inner p { font-size: 12px; color: var(--text2); margin-bottom: 20px; line-height: 1.6; }
+    .btn-quiz-start {
+      display: inline-block;
+      padding: 10px 28px;
+      border-radius: 7px;
+      border: 1px solid var(--blue);
+      background: var(--blue-act);
+      color: var(--blue-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .btn-quiz-start:hover { background: #1a3d6a; }
+
+    /* empty state */
+    .quiz-empty-inner { text-align: center; }
+    .quiz-empty-inner p { font-size: 12px; color: var(--text2); margin-bottom: 16px; line-height: 1.6; }
+    .quiz-empty-inner a { font-size: 12px; color: var(--blue-text); text-decoration: none; }
+    .quiz-empty-inner a:hover { text-decoration: underline; }
+
+    /* question screen */
+    .quiz-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .quiz-context { font-size: 12px; color: var(--text2); }
+    .quiz-context strong { color: var(--text); }
+    .quiz-progress { font-size: 11px; color: var(--text3); font-variant-numeric: tabular-nums; }
+
+    .quiz-hand {
+      font-size: 52px;
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: .02em;
+      margin: 8px 0 4px;
+      line-height: 1;
+    }
+    .hand-pair    { color: #e8c040; }
+    .hand-suited  { color: var(--blue-text); }
+    .hand-offsuit { color: var(--text); }
+
+    .quiz-prompt {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text3);
+      margin-bottom: 20px;
+    }
+
+    .quiz-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .quiz-action-btn {
+      padding: 14px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text2);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.1s;
+      border-left: 3px solid transparent;
+    }
+    .quiz-action-btn:hover:not(:disabled) {
+      background: var(--bg2);
+      color: var(--text);
+      border-left-color: var(--atxt);
+    }
+    .quiz-action-btn.btn-correct {
+      background: var(--abg);
+      color: var(--atxt);
+      border-color: var(--atxt);
+      border-left-width: 3px;
+    }
+    .quiz-action-btn.btn-wrong {
+      background: #3d0e0e;
+      color: #f08080;
+      border-color: #f08080;
+    }
+    .quiz-action-btn:disabled { cursor: default; }
+
+    .quiz-feedback {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 9px 12px;
+      border-radius: 5px;
+      margin-bottom: 12px;
+    }
+    .fb-correct { background: #1a3d1a; color: #7ecc7e; }
+    .fb-wrong   { background: #3d0e0e; color: #f08080; }
+
+    .btn-quiz-next {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .btn-quiz-next:hover { background: var(--bg3); color: var(--text); border-color: var(--text3); }
+
+    /* results screen */
+    .quiz-results-inner { text-align: center; }
+    .quiz-score-num {
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .quiz-score-msg { font-size: 12px; color: var(--text2); margin-bottom: 24px; }
+    .btn-quiz-restart {
+      display: inline-block;
+      padding: 9px 24px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .btn-quiz-restart:hover { background: var(--bg3); color: var(--text); }
+
+    @media (max-width: 420px) {
+      .quiz-actions { grid-template-columns: 1fr; }
+      .quiz-hand    { font-size: 40px; }
+    }
   </style>
 </head>
 <body>
@@ -128,7 +293,7 @@
       <li><span class="check">✓</span> Tout le gratuit</li>
       <li><span class="locked">✦</span> Export texte — situation courante &amp; toutes positions <span class="coming-soon">à venir</span></li>
       <li><span class="locked">✦</span> Import / Export JSON — sauvegarde complète <span class="coming-soon">à venir</span></li>
-      <li><span class="locked">✦</span> Quiz préflop interactif <span class="coming-soon">à venir</span></li>
+      <li><span class="check">✓</span> Quiz préflop interactif</li>
       <li><span class="locked">✦</span> Historique de sessions <span class="coming-soon">à venir</span></li>
       <li><span class="locked">✦</span> Comparaison de ranges <span class="coming-soon">à venir</span></li>
       <li><span class="locked">✦</span> Stats d'évolution <span class="coming-soon">à venir</span></li>
@@ -141,5 +306,57 @@
   <a href="index.html" class="back-link">← Retourner au Range Builder</a>
 </div>
 
+<!-- ── QUIZ SECTION ── -->
+<div class="quiz-section">
+  <p class="quiz-section-title">Quiz préflop</p>
+  <p class="quiz-section-sub">
+    Teste tes ranges sauvegardées — 10 mains tirées aléatoirement.
+  </p>
+
+  <div class="quiz-card">
+
+    <!-- Start -->
+    <div id="quizStart" class="quiz-start-inner">
+      <p>
+        Le quiz pioche dans les ranges que tu as configurées dans l'outil.<br>
+        Pour chaque main, choisis la bonne action.
+      </p>
+      <button class="btn-quiz-start" id="btnStartQuiz">
+        Commencer le quiz →
+      </button>
+    </div>
+
+    <!-- No ranges configured -->
+    <div id="quizEmpty" class="quiz-empty-inner" style="display:none">
+      <p>
+        Aucune range configurée.<br>
+        <a href="index.html">Configure tes ranges dans l'outil</a> puis reviens ici.
+      </p>
+    </div>
+
+    <!-- Question -->
+    <div id="quizQuestion" style="display:none">
+      <div class="quiz-meta">
+        <span class="quiz-context" id="qContext"></span>
+        <span class="quiz-progress" id="qProgress"></span>
+      </div>
+      <div class="quiz-hand" id="qHand"></div>
+      <p class="quiz-prompt" id="qPrompt">Quelle action ?</p>
+      <div class="quiz-actions" id="qActions"></div>
+      <div class="quiz-feedback" id="qFeedback" style="display:none"></div>
+      <button class="btn-quiz-next" id="btnNext" style="display:none">Suivant →</button>
+    </div>
+
+    <!-- Results -->
+    <div id="quizResults" class="quiz-results-inner" style="display:none">
+      <div class="quiz-score-num" id="qScoreNum"></div>
+      <p class="quiz-score-msg" id="qScoreMsg"></p>
+      <button class="btn-quiz-restart" id="btnRestart">Rejouer</button>
+    </div>
+
+  </div>
+</div>
+
+<script src="quiz.js"></script>
 </body>
 </html>
