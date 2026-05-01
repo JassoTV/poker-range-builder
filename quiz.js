@@ -264,10 +264,15 @@ document.getElementById('btnStartQuiz').addEventListener('click', startQuiz);
 
 document.getElementById('btnNext').addEventListener('click', () => {
   currentQ++;
+  // In infinite mode, refill the queue when running low
+  if (infiniteMode && currentQ >= questions.length - 5) {
+    const more = drawQuestions(buildPool());
+    questions  = [...questions, ...more];
+  }
   if (!infiniteMode && currentQ >= Q_TOTAL) {
     showResults();
   } else if (currentQ >= questions.length) {
-    showResults(); // end of infinite batch
+    showResults(); // safety net (finite mode, pool exhausted)
   } else {
     renderQuestion();
   }

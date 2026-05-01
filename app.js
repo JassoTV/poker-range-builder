@@ -576,10 +576,11 @@ function loadPreset() {
   if (!preset) return;
   const name = FR ? preset.label : preset.labelEN;
   const msg  = FR
-    ? `Charger les ranges « ${name} » ?\n\nCeci va écraser toutes tes ranges actuelles.`
-    : `Load "${name}" ranges?\n\nThis will overwrite all your current ranges.`;
+    ? `Charger les ranges « ${name} » ?\n\nCeci va écraser toutes tes ranges actuelles.\nCeci écrasera aussi tes notes par situation.`
+    : `Load "${name}" ranges?\n\nThis will overwrite all your current ranges.\nThis will also clear your notes per situation.`;
   if (!confirm(msg)) return;
   Object.keys(rangeState).forEach(k => delete rangeState[k]);
+  Object.keys(notes).forEach(k => delete notes[k]);
   Object.assign(rangeState, JSON.parse(JSON.stringify(preset.state)));
   save();
   buildSitTabs();
