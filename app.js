@@ -152,19 +152,13 @@ function situationHasHands(pos, sitId, suffix) {
 
 function applyI18n() {
   document.documentElement.lang = FR ? 'fr' : 'en';
-  document.getElementById('headerSubtitle').textContent  = T.headerSubtitle;
-  document.getElementById('labelPos').textContent        = T.posLabel;
-  document.getElementById('labelSit').textContent        = T.sitLabel;
-  document.getElementById('labelAntes').textContent      = T.antesLabel;
-  document.getElementById('exportTitle').textContent     = T.exportTitle;
-  document.getElementById('notesTitle').textContent      = T.notesTitle;
-  document.getElementById('btnClear').textContent        = T.btnClear;
-  document.getElementById('btnExport').textContent       = T.btnExport;
-  document.getElementById('btnExportAll').textContent    = T.btnExportAll;
-  document.getElementById('btnPng').textContent          = T.btnPng;
-  document.getElementById('btnExportJson').textContent   = T.btnExportJson;
-  document.getElementById('btnImportJson').textContent   = T.btnImportJson;
-  document.getElementById('btnCopy').textContent         = T.copyBtn;
+  document.getElementById('headerSubtitle').textContent = T.headerSubtitle;
+  document.getElementById('labelPos').textContent       = T.posLabel;
+  document.getElementById('labelSit').textContent       = T.sitLabel;
+  document.getElementById('labelAntes').textContent     = T.antesLabel;
+  document.getElementById('notesTitle').textContent     = T.notesTitle;
+  document.getElementById('btnClear').textContent       = T.btnClear;
+  document.getElementById('btnPng').textContent         = T.btnPng;
 }
 
 // ── BUILD UI ─────────────────────────────────────────────────────────────────
