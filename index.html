@@ -83,9 +83,15 @@
       reader.onload = ev => {
         try {
           const data = JSON.parse(ev.target.result);
-          if (data.state) Object.assign(rangeState, data.state);
-          if (data.notes) Object.assign(notes, data.notes);
-          save(); buildSitTabs(); buildNotesGrid(); renderAll();
+          // Clear then repopulate in-memory state from the imported object
+          // Format: {"BTN_open": {"AA": 1, ...}, ...}
+          Object.keys(rangeState).forEach(k => delete rangeState[k]);
+          Object.assign(rangeState, data);
+          // Persist and refresh
+          localStorage.setItem('prb_state', JSON.stringify(rangeState));
+          buildSitTabs();
+          buildNotesGrid();
+          renderAll();
         } catch (_) {}
         e.target.value = '';
       };
