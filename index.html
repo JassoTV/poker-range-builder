@@ -11,10 +11,11 @@
 <header>
   <div class="header-brand">
     <h1>Poker Range Builder</h1>
-    <p>Construis et mémorise tes ranges préflop par position</p>
+    <p id="headerSubtitle">Construis et mémorise tes ranges préflop par position</p>
   </div>
   <div class="header-actions">
-    <a href="premium.html" class="pro-link">Passer Pro ✦</a>
+    <a href="premium.html" class="pro-link">Pro ✦</a>
+    <button class="btn-help" id="btnHelp" title="Help / Raccourcis">?</button>
     <span class="save-status" id="saveStatus">Chargement…</span>
   </div>
 </header>
@@ -22,16 +23,16 @@
 <main>
 
   <section class="row">
-    <span class="row-label">Position</span>
+    <span class="row-label" id="labelPos">Position</span>
     <div id="posTabs" class="tabs-group"></div>
     <div class="antes-wrap">
       <input type="checkbox" id="antesChk">
-      <label for="antesChk">Antes en jeu</label>
+      <label for="antesChk" id="labelAntes">Antes en jeu</label>
     </div>
   </section>
 
   <section class="row">
-    <span class="row-label">Situation</span>
+    <span class="row-label" id="labelSit">Situation</span>
     <div id="sitTabs" class="tabs-group"></div>
   </section>
 
@@ -47,24 +48,33 @@
   </div>
 
   <div class="toolbar">
-    <button class="btn" id="btnClear">Effacer la situation</button>
-    <button class="btn btn-accent" id="btnExport">Exporter texte</button>
-    <button class="btn btn-accent" id="btnExportAll">Exporter tout</button>
-    <button class="btn btn-accent" id="btnPng">Exporter PNG</button>
+    <button class="btn" id="btnClear">Effacer</button>
+    <button class="btn btn-accent" id="btnExport">Export texte</button>
+    <button class="btn btn-accent" id="btnExportAll">Export tout</button>
+    <button class="btn btn-accent" id="btnPng">Export PNG</button>
+    <button class="btn btn-accent" id="btnExportJson">Export JSON</button>
+    <button class="btn btn-accent" id="btnImportJson">Import JSON</button>
+    <input type="file" id="fileInput" accept=".json" style="display:none">
   </div>
 
   <div class="export-area" id="exportArea">
-    <h3>Copier ce texte</h3>
+    <h3 id="exportTitle">Copier ce texte</h3>
     <pre id="exportText"></pre>
     <button class="btn" id="btnCopy">Copier</button>
   </div>
 
   <div class="notes-section">
-    <h2>Notes par situation</h2>
+    <h2 id="notesTitle">Notes par situation</h2>
     <div class="notes-grid" id="notesGrid"></div>
   </div>
 
 </main>
+
+<!-- Sidebar -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-inner" id="sidebarInner"></div>
+</aside>
 
 <script src="app.js"></script>
 </body>
