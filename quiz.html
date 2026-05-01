@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz préflop — Poker Range Builder</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .quiz-page { max-width: 520px; margin: 40px auto; padding: 0 20px 60px; }
+
+    /* ── locked screen ── */
+    .quiz-locked {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 40px 28px;
+      text-align: center;
+    }
+    .quiz-locked-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: #e8c040;
+      background: #4a3a0822;
+      border: 1px solid #4a3a08;
+      border-radius: 4px;
+      padding: 2px 8px;
+      margin-bottom: 14px;
+    }
+    .quiz-locked h2 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .quiz-locked p  { font-size: 12px; color: var(--text2); margin-bottom: 24px; line-height: 1.6; }
+    .btn-quiz-pro {
+      display: inline-block;
+      padding: 10px 24px;
+      border-radius: 7px;
+      background: #e8c040;
+      color: #0f0f0f;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .btn-quiz-pro:hover { opacity: 0.88; }
+
+    /* ── quiz card ── */
+    .quiz-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px 24px;
+    }
+    .quiz-card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text3);
+      margin-bottom: 20px;
+    }
+
+    /* start screen */
+    .quiz-start-inner { text-align: center; }
+    .quiz-start-inner p { font-size: 12px; color: var(--text2); margin-bottom: 20px; line-height: 1.6; }
+    .btn-quiz-start {
+      display: inline-block;
+      padding: 10px 28px;
+      border-radius: 7px;
+      border: 1px solid var(--blue);
+      background: var(--blue-act);
+      color: var(--blue-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .btn-quiz-start:hover { background: #1a3d6a; }
+
+    /* empty state */
+    .quiz-empty-inner { text-align: center; }
+    .quiz-empty-inner p { font-size: 12px; color: var(--text2); margin-bottom: 16px; line-height: 1.6; }
+    .quiz-empty-inner a { color: var(--blue-text); text-decoration: none; font-size: 12px; }
+    .quiz-empty-inner a:hover { text-decoration: underline; }
+
+    /* question */
+    .quiz-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .quiz-context  { font-size: 12px; color: var(--text2); }
+    .quiz-context strong { color: var(--text); }
+    .quiz-progress { font-size: 11px; color: var(--text3); font-variant-numeric: tabular-nums; }
+
+    .quiz-hand {
+      font-size: 56px;
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: .02em;
+      margin: 4px 0;
+      line-height: 1;
+    }
+    .hand-pair    { color: #e8c040; }
+    .hand-suited  { color: var(--blue-text); }
+    .hand-offsuit { color: var(--text); }
+
+    .quiz-prompt {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text3);
+      margin: 8px 0 20px;
+    }
+
+    .quiz-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .quiz-action-btn {
+      padding: 14px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text2);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.1s;
+      border-left: 3px solid transparent;
+    }
+    .quiz-action-btn:hover:not(:disabled) {
+      background: var(--bg2);
+      color: var(--text);
+      border-left-color: var(--atxt);
+    }
+    .quiz-action-btn.btn-correct {
+      background: var(--abg);
+      color: var(--atxt);
+      border-color: var(--atxt);
+      border-left-width: 3px;
+    }
+    .quiz-action-btn.btn-wrong {
+      background: #3d0e0e;
+      color: #f08080;
+      border-color: #f08080;
+    }
+    .quiz-action-btn:disabled { cursor: default; }
+
+    .quiz-feedback {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 9px 12px;
+      border-radius: 5px;
+      margin-bottom: 12px;
+    }
+    .fb-correct { background: #1a3d1a; color: #7ecc7e; }
+    .fb-wrong   { background: #3d0e0e; color: #f08080; }
+
+    .btn-quiz-next {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .btn-quiz-next:hover { background: var(--bg3); color: var(--text); border-color: var(--text3); }
+
+    /* results */
+    .quiz-results-inner { text-align: center; }
+    .quiz-score-num {
+      font-size: 52px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .quiz-score-msg { font-size: 12px; color: var(--text2); margin-bottom: 24px; }
+    .btn-quiz-restart {
+      display: inline-block;
+      padding: 9px 24px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .btn-quiz-restart:hover { background: var(--bg3); color: var(--text); }
+
+    @media (max-width: 420px) {
+      .quiz-actions { grid-template-columns: 1fr; }
+      .quiz-hand    { font-size: 42px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <h1>Poker Range Builder</h1>
+    <p>Quiz préflop</p>
+  </div>
+  <div class="header-actions">
+    <a href="index.html" class="pro-link" style="color:var(--text2);border-color:var(--border)">← Retour</a>
+  </div>
+</header>
+
+<div class="quiz-page">
+
+  <!-- Locked by default — hidden when ?dev=true -->
+  <div id="quizLocked" class="quiz-locked">
+    <div class="quiz-locked-badge">Pro ✦</div>
+    <h2>Quiz préflop</h2>
+    <p>Teste tes ranges sur 10 mains aléatoires.<br>
+       Disponible dans la version Pro.</p>
+    <a href="premium.html" class="btn-quiz-pro">Voir la version Pro →</a>
+  </div>
+
+  <!-- Quiz app — shown only with ?dev=true -->
+  <div id="quizApp" style="display:none">
+    <div class="quiz-card">
+      <p class="quiz-card-title">Quiz préflop — 10 mains</p>
+
+      <!-- Start -->
+      <div id="quizStart" class="quiz-start-inner">
+        <p>Le quiz pioche dans les ranges configurées dans l'outil.<br>
+           Pour chaque main, choisis la bonne action.</p>
+        <button class="btn-quiz-start" id="btnStartQuiz">Commencer →</button>
+      </div>
+
+      <!-- No ranges -->
+      <div id="quizEmpty" class="quiz-empty-inner" style="display:none">
+        <p>Aucune range configurée.<br>
+           <a href="index.html">Configure tes ranges</a> puis reviens ici.</p>
+      </div>
+
+      <!-- Question -->
+      <div id="quizQuestion" style="display:none">
+        <div class="quiz-meta">
+          <span class="quiz-context" id="qContext"></span>
+          <span class="quiz-progress" id="qProgress"></span>
+        </div>
+        <div class="quiz-hand" id="qHand"></div>
+        <p class="quiz-prompt" id="qPrompt">Quelle action ?</p>
+        <div class="quiz-actions" id="qActions"></div>
+        <div class="quiz-feedback" id="qFeedback" style="display:none"></div>
+        <button class="btn-quiz-next" id="btnNext" style="display:none">Suivant →</button>
+      </div>
+
+      <!-- Results -->
+      <div id="quizResults" class="quiz-results-inner" style="display:none">
+        <div class="quiz-score-num" id="qScoreNum"></div>
+        <p class="quiz-score-msg" id="qScoreMsg"></p>
+        <button class="btn-quiz-restart" id="btnRestart">Rejouer</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Dev access — quiz.html?dev=true bypasses the locked screen
+  if (new URLSearchParams(location.search).get('dev') === 'true') {
+    document.getElementById('quizLocked').style.display = 'none';
+    document.getElementById('quizApp').style.display    = '';
+  }
+</script>
+<script src="quiz.js"></script>
+</body>
+</html>

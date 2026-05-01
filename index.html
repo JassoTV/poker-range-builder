@@ -50,6 +50,9 @@
   <div class="toolbar">
     <button class="btn" id="btnClear">Effacer</button>
     <button class="btn btn-primary" id="btnPng">Export PNG</button>
+    <!-- dev-only: revealed by ?dev=true -->
+    <button class="btn btn-dev" id="btnImportJson" style="display:none">Import JSON</button>
+    <input type="file" id="fileInput" accept=".json" style="display:none">
   </div>
 
   <div class="notes-section">
@@ -66,5 +69,29 @@
 </aside>
 
 <script src="app.js"></script>
+<script>
+  // Dev access — index.html?dev=true reveals Pro tools for local testing
+  if (new URLSearchParams(location.search).get('dev') === 'true') {
+    document.getElementById('btnImportJson').style.display = '';
+    document.getElementById('btnImportJson').addEventListener('click', () =>
+      document.getElementById('fileInput').click()
+    );
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (data.state) Object.assign(rangeState, data.state);
+          if (data.notes) Object.assign(notes, data.notes);
+          save(); buildSitTabs(); buildNotesGrid(); renderAll();
+        } catch (_) {}
+        e.target.value = '';
+      };
+      reader.readAsText(file);
+    });
+  }
+</script>
 </body>
 </html>

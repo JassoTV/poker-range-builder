@@ -208,6 +208,8 @@ button.btn.btn-accent       { border-color: var(--blue); color: var(--blue-text)
 button.btn.btn-accent:hover { background: var(--blue-act); }
 button.btn.btn-primary      { background: var(--blue-act); color: var(--blue-text); border-color: var(--blue); font-weight: 600; }
 button.btn.btn-primary:hover { background: #1a3d6a; border-color: #5090e0; color: #90c8ff; }
+button.btn.btn-dev          { border-color: #4a3a08; color: #e8c040; font-size: 10px; }
+button.btn.btn-dev:hover    { background: #4a3a0822; }
 
 /* ── EXPORT AREA ── */
 .export-area {
