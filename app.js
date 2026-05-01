@@ -575,10 +575,13 @@ function load() {
 
 // ── KEYBOARD ─────────────────────────────────────────────────────────────────
 
+const DIGIT_CODES = { Digit1:1, Digit2:2, Digit3:3, Digit4:4,
+                      Numpad1:1, Numpad2:2, Numpad3:3, Numpad4:4 };
+
 document.addEventListener('keydown', e => {
   if (e.target.matches('textarea, input')) return;
-  if (['1','2','3','4'].includes(e.key)) {
-    curAction = parseInt(e.key);
+  if (e.code in DIGIT_CODES) {
+    curAction = DIGIT_CODES[e.code];
     buildLegend();
   }
   if (e.key === 'Escape') closeSidebar();
@@ -598,12 +601,6 @@ renderAll();
 
 document.getElementById('antesChk').addEventListener('change', () => { buildSitTabs(); renderAll(); });
 document.getElementById('btnClear').addEventListener('click', clearCurrent);
-document.getElementById('btnExport').addEventListener('click', toggleExport);
-document.getElementById('btnExportAll').addEventListener('click', exportAll);
 document.getElementById('btnPng').addEventListener('click', exportPNG);
-document.getElementById('btnExportJson').addEventListener('click', exportJSON);
-document.getElementById('btnImportJson').addEventListener('click', importJSON);
-document.getElementById('fileInput').addEventListener('change', onFileSelected);
-document.getElementById('btnCopy').addEventListener('click', copyExport);
 document.getElementById('btnHelp').addEventListener('click', openSidebar);
 document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);

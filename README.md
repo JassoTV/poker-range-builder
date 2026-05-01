@@ -1,5 +1,9 @@
 # Poker Range Builder
 
+**Website:** https://jassotv.github.io/poker-range-builder/
+
+Built for poker players who want to master preflop ranges without bloated solvers.
+
 A dark-themed, mobile-friendly preflop range builder that runs entirely in the browser — no server, no framework, no dependencies.
 
 ## Features

@@ -203,9 +203,11 @@ button.btn {
   color: var(--text2);
   transition: all 0.1s;
 }
-button.btn:hover          { background: var(--bg2); color: var(--text); border-color: var(--text3); }
-button.btn.btn-accent     { border-color: var(--blue); color: var(--blue-text); }
+button.btn:hover            { background: var(--bg2); color: var(--text); border-color: var(--text3); }
+button.btn.btn-accent       { border-color: var(--blue); color: var(--blue-text); }
 button.btn.btn-accent:hover { background: var(--blue-act); }
+button.btn.btn-primary      { background: var(--blue-act); color: var(--blue-text); border-color: var(--blue); font-weight: 600; }
+button.btn.btn-primary:hover { background: #1a3d6a; border-color: #5090e0; color: #90c8ff; }
 
 /* ── EXPORT AREA ── */
 .export-area {
