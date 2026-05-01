@@ -60,9 +60,34 @@
       margin-bottom: 20px;
     }
 
+    /* count selector */
+    .quiz-count-selector {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .quiz-count-btn {
+      padding: 6px 18px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .quiz-count-btn.active {
+      background: var(--blue-act);
+      color: var(--blue-text);
+      border-color: var(--blue);
+    }
+    .quiz-count-btn:hover:not(.active) { background: var(--bg3); color: var(--text); }
+
     /* start screen */
     .quiz-start-inner { text-align: center; }
-    .quiz-start-inner p { font-size: 12px; color: var(--text2); margin-bottom: 20px; line-height: 1.6; }
+    .quiz-start-inner p { font-size: 12px; color: var(--text2); margin-bottom: 16px; line-height: 1.6; }
     .btn-quiz-start {
       display: inline-block;
       padding: 10px 28px;
@@ -89,13 +114,26 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      gap: 8px;
     }
     .quiz-context  { font-size: 12px; color: var(--text2); }
     .quiz-context strong { color: var(--text); }
+    .quiz-meta-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .quiz-score-live {
+      font-size: 12px;
+      font-weight: 700;
+      color: #7ecc7e;
+      font-variant-numeric: tabular-nums;
+    }
     .quiz-progress { font-size: 11px; color: var(--text3); font-variant-numeric: tabular-nums; }
 
     .quiz-hand {
-      font-size: 56px;
+      font-size: 72px;
       font-weight: 800;
       text-align: center;
       letter-spacing: .02em;
@@ -173,6 +211,21 @@
     }
     .btn-quiz-next:hover { background: var(--bg3); color: var(--text); border-color: var(--text3); }
 
+    .btn-quiz-stop {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #4a3a08;
+      background: transparent;
+      color: #e8c040;
+      font-size: 11px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.1s;
+    }
+    .btn-quiz-stop:hover { background: #4a3a0822; }
+
     /* results */
     .quiz-results-inner { text-align: center; }
     .quiz-score-num {
@@ -182,7 +235,38 @@
       line-height: 1;
       margin-bottom: 10px;
     }
-    .quiz-score-msg { font-size: 12px; color: var(--text2); margin-bottom: 24px; }
+    .quiz-score-msg { font-size: 12px; color: var(--text2); margin-bottom: 20px; }
+
+    /* missed hands */
+    .quiz-missed { margin-bottom: 20px; text-align: left; }
+    .missed-none   { font-size: 12px; color: #7ecc7e; margin-bottom: 16px; }
+    .missed-header { font-size: 11px; color: var(--text2); margin-bottom: 8px; }
+    .missed-list   { display: flex; flex-direction: column; gap: 5px; }
+    .missed-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 10px;
+      background: var(--bg3);
+      border-radius: 5px;
+      font-size: 11px;
+    }
+    .missed-hand {
+      font-weight: 800;
+      font-size: 18px;
+      min-width: 44px;
+      line-height: 1;
+    }
+    .missed-ctx    { color: var(--text2); flex: 1; }
+    .missed-answer { color: #7ecc7e; font-weight: 600; flex-shrink: 0; }
+
+    /* results buttons */
+    .quiz-results-btns {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
     .btn-quiz-restart {
       display: inline-block;
       padding: 9px 24px;
@@ -195,10 +279,22 @@
       transition: all 0.1s;
     }
     .btn-quiz-restart:hover { background: var(--bg3); color: var(--text); }
+    .btn-quiz-back {
+      display: inline-block;
+      padding: 9px 24px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      font-size: 12px;
+      text-decoration: none;
+      transition: all 0.1s;
+    }
+    .btn-quiz-back:hover { background: var(--bg3); color: var(--text); }
 
     @media (max-width: 420px) {
       .quiz-actions { grid-template-columns: 1fr; }
-      .quiz-hand    { font-size: 42px; }
+      .quiz-hand    { font-size: 56px; }
     }
   </style>
 </head>
@@ -220,7 +316,7 @@
   <div id="quizLocked" class="quiz-locked">
     <div class="quiz-locked-badge">Pro ✦</div>
     <h2>Quiz préflop</h2>
-    <p>Teste tes ranges sur 10 mains aléatoires.<br>
+    <p>Teste tes ranges sur des mains aléatoires.<br>
        Disponible dans la version Pro.</p>
     <a href="premium.html" class="btn-quiz-pro">Voir la version Pro →</a>
   </div>
@@ -228,16 +324,21 @@
   <!-- Quiz app — shown only with ?dev=true -->
   <div id="quizApp" style="display:none">
     <div class="quiz-card">
-      <p class="quiz-card-title">Quiz préflop — 10 mains</p>
+      <p class="quiz-card-title">Quiz préflop</p>
 
       <!-- Start -->
       <div id="quizStart" class="quiz-start-inner">
         <p>Le quiz pioche dans les ranges configurées dans l'outil.<br>
            Pour chaque main, choisis la bonne action.</p>
+        <div class="quiz-count-selector">
+          <button class="quiz-count-btn active" data-count="10">10</button>
+          <button class="quiz-count-btn" data-count="20">20</button>
+          <button class="quiz-count-btn" data-count="0">∞</button>
+        </div>
         <button class="btn-quiz-start" id="btnStartQuiz">Commencer →</button>
       </div>
 
-      <!-- No ranges -->
+      <!-- No ranges configured -->
       <div id="quizEmpty" class="quiz-empty-inner" style="display:none">
         <p>Aucune range configurée.<br>
            <a href="index.html">Configure tes ranges</a> puis reviens ici.</p>
@@ -247,20 +348,30 @@
       <div id="quizQuestion" style="display:none">
         <div class="quiz-meta">
           <span class="quiz-context" id="qContext"></span>
-          <span class="quiz-progress" id="qProgress"></span>
+          <div class="quiz-meta-right">
+            <span class="quiz-score-live" id="qScoreLive">0 ✓</span>
+            <span class="quiz-progress" id="qProgress"></span>
+          </div>
         </div>
         <div class="quiz-hand" id="qHand"></div>
         <p class="quiz-prompt" id="qPrompt">Quelle action ?</p>
         <div class="quiz-actions" id="qActions"></div>
         <div class="quiz-feedback" id="qFeedback" style="display:none"></div>
         <button class="btn-quiz-next" id="btnNext" style="display:none">Suivant →</button>
+        <button class="btn-quiz-stop" id="btnStop" style="display:none">
+          Arrêter et voir les résultats →
+        </button>
       </div>
 
       <!-- Results -->
       <div id="quizResults" class="quiz-results-inner" style="display:none">
         <div class="quiz-score-num" id="qScoreNum"></div>
         <p class="quiz-score-msg" id="qScoreMsg"></p>
-        <button class="btn-quiz-restart" id="btnRestart">Rejouer</button>
+        <div id="qMissed" class="quiz-missed"></div>
+        <div class="quiz-results-btns">
+          <button class="btn-quiz-restart" id="btnRestart">Rejouer</button>
+          <a href="index.html" class="btn-quiz-back">← Retour à l'outil</a>
+        </div>
       </div>
 
     </div>

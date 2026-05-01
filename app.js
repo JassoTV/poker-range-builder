@@ -2,7 +2,8 @@
 
 // ── I18N ─────────────────────────────────────────────────────────────────────
 
-const FR = navigator.language?.startsWith('fr');
+const FR  = navigator.language?.startsWith('fr');
+const DEV = new URLSearchParams(location.search).get('dev') === 'true';
 
 const T = {
   headerSubtitle:   FR ? 'Construis et mémorise tes ranges préflop par position'
@@ -11,14 +12,7 @@ const T = {
   sitLabel:         FR ? 'Situation'                 : 'Situation',
   antesLabel:       FR ? 'Antes en jeu'              : 'Antes in play',
   btnClear:         FR ? 'Effacer'                   : 'Clear',
-  btnExport:        FR ? 'Export texte'              : 'Export text',
-  btnExportAll:     FR ? 'Export tout'               : 'Export all',
   btnPng:           'Export PNG',
-  btnExportJson:    'Export JSON',
-  btnImportJson:    'Import JSON',
-  exportTitle:      FR ? 'Copier ce texte'           : 'Copy',
-  copyBtn:          FR ? 'Copier'                    : 'Copy',
-  copiedBtn:        FR ? 'Copié ✓'                   : 'Copied ✓',
   notesTitle:       FR ? 'Notes par situation'       : 'Notes per situation',
   notesPlaceholder: FR ? 'Notes, ajustements, leaks…': 'Notes, adjustments, leaks…',
   savedAt:          FR ? 'Sauvegardé '               : 'Saved ',
@@ -26,7 +20,9 @@ const T = {
   newFile:          FR ? 'Nouveau fichier'            : 'New file',
   antesSuffix:      ' (antes)',
   exportAllHeader:  FR ? '# Toutes mes ranges poker\n': '# All my poker ranges\n',
-  // situation labels — poker terms stay universal
+  copiedBtn:        FR ? 'Copié ✓'                   : 'Copied ✓',
+  copyBtn:          FR ? 'Copier'                    : 'Copy',
+  // situation labels
   sitOpen:          FR ? 'Open (1er)'         : 'Open (1st in)',
   sitVsLimp:        'vs Limp',
   sitVsRaise:       'vs Raise',
@@ -34,12 +30,30 @@ const T = {
   sitOpenMulti:     FR ? 'Open (multi)'       : 'Open (multi)',
   sitVsOpen:        'vs Open',
   sitVsLimpMulti:   FR ? 'vs Limp (multi)'    : 'vs Limp (multi)',
-  // sidebar headings
+  // sidebar — tools
+  sbClose:          FR ? 'Fermer'             : 'Close',
+  sbToolsHeader:    FR ? 'Outils'             : 'Tools',
+  sbGuide:          FR ? 'Clique ou glisse pour colorier les cases. Clic droit = effacer. Touches 1–4 pour changer d\'action.'
+                       : 'Click or drag to paint cells. Right-click = erase. Keys 1–4 to change action.',
   sbShortcuts:      FR ? 'Raccourcis clavier' : 'Keyboard shortcuts',
   sbLexicon:        FR ? 'Lexique'            : 'Lexicon',
   sbPhilosophy:     FR ? 'Philosophie'        : 'Philosophy',
   sbChangelog:      'Changelog',
-  sbClose:          FR ? 'Fermer ce panneau'  : 'Close this panel',
+  // sidebar — pro
+  sbProHeader:      'Pro ✦',
+  sbQuiz:           FR ? 'Quiz préflop'        : 'Preflop quiz',
+  sbPresets:        FR ? 'Ranges pré-remplies' : 'Pre-built ranges',
+  sbHistory:        FR ? 'Historique sessions' : 'Session history',
+  sbCompare:        FR ? 'Comparaison ranges'  : 'Range comparison',
+  sbImportExport:   'Import / Export JSON',
+  sbLoadPreset:     FR ? 'Charger'             : 'Load',
+  sbPresetWarning:  FR ? '⚠ Écrase tes ranges actuelles — exporte d\'abord si besoin.'
+                       : '⚠ Overwrites your current ranges — export first if needed.',
+  sbComingSoon:     FR ? 'à venir'             : 'coming soon',
+  sbImport:         FR ? 'Importer JSON'       : 'Import JSON',
+  sbExport:         FR ? 'Exporter JSON'       : 'Export JSON',
+  sbUnlockPro:      FR ? 'Voir la version Pro →' : 'See Pro version →',
+  sbPresetLoaded:   (lbl) => FR ? `Ranges « ${lbl} » chargées ✓` : `"${lbl}" ranges loaded ✓`,
 };
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
@@ -104,6 +118,15 @@ const CTX = {
   vs_open: () => FR
     ? 'BB face à un open — Tu as déjà investi 1 BB. Défends plus large qu\'en SB.'
     : 'BB vs open — You already have 1 BB invested. Defend wider than SB.',
+};
+
+const POS_DESC = {
+  BTN: FR ? 'Dernière à parler — position idéale'      : 'Last to act — best position',
+  CO:  FR ? 'Cut-Off — 2e avant le bouton'             : 'Cut-Off — 2nd before button',
+  HJ:  FR ? 'Hijack — 3e avant le bouton'              : 'Hijack — 3rd before button',
+  UTG: FR ? 'Under the Gun — 1er à parler'             : 'Under the Gun — 1st to act',
+  SB:  FR ? 'Small Blind — souvent hors position'      : 'Small Blind — often out of position',
+  BB:  FR ? 'Big Blind — défends tes blindes'          : 'Big Blind — defend your blinds',
 };
 
 const ACTIONS = [
@@ -291,11 +314,8 @@ function buildNotesGrid() {
 
 function buildSidebar() {
   const shortcuts = [
-    { key: '1', label: 'Raise / Open' },
-    { key: '2', label: 'Call / Limp' },
-    { key: '3', label: '3-Bet' },
-    { key: '4', label: 'Fold' },
-    { key: 'Esc', label: T.sbClose },
+    { key: '1–4',  label: FR ? 'Choisir une action' : 'Select an action' },
+    { key: 'Esc',  label: FR ? 'Fermer ce panneau'  : 'Close this panel' },
   ];
 
   const lexicon = [
@@ -317,16 +337,65 @@ function buildSidebar() {
     + '<p class="sb-p">Ranges vary by position because the number of players left to act changes your realizable equity and how often you end up out of position postflop.</p>';
 
   const changelog = [
-    { ver: 'v1.1', note: 'Import JSON · Sidebar · i18n · ' + (FR ? 'Raccourcis clavier' : 'Keyboard shortcuts') },
-    { ver: 'v1.0', note: FR ? 'Lancement — grille interactive, export texte & PNG' : 'Launch — interactive grid, text & PNG export' },
+    { ver: 'v1.4', note: FR ? 'Sidebar universelle, ranges pré-remplies, quiz amélioré, features Pro'
+                            : 'Universal sidebar, preset ranges, improved quiz, Pro features' },
+    { ver: 'v1.3', note: FR ? 'Fix Import JSON, accès dev (?dev=true)' : 'Import JSON fix, dev access (?dev=true)' },
+    { ver: 'v1.2', note: FR ? 'Fix grille, Export PNG, quiz.html séparé' : 'Grid fix, Export PNG, standalone quiz.html' },
+    { ver: 'v1.1', note: 'Sidebar · i18n · Import JSON · ' + (FR ? 'Raccourcis' : 'Shortcuts') },
+    { ver: 'v1.0', note: FR ? 'Lancement — grille interactive, export PNG' : 'Launch — interactive grid, PNG export' },
   ];
 
-  const row   = (key, label)   => `<div class="sb-row"><span class="sb-key">${key}</span><span>${label}</span></div>`;
-  const lrow  = (term, def)    => `<div class="sb-row"><span class="sb-term">${term}</span><span class="sb-def">${def}</span></div>`;
-  const clog  = (ver, note)    => `<div class="sb-clog"><strong>${ver}</strong> — ${note}</div>`;
+  const row  = (key, label) => `<div class="sb-row"><span class="sb-key">${key}</span><span>${label}</span></div>`;
+  const lrow = (term, def)  => `<div class="sb-row"><span class="sb-term">${term}</span><span class="sb-def">${def}</span></div>`;
+  const clog = (ver, note)  => `<div class="sb-clog"><strong>${ver}</strong> — ${note}</div>`;
 
-  document.getElementById('sidebarInner').innerHTML =
+  // ── Pro section helpers ────────────────────────────────────────────────────
+  const lockedBtn = (label, badge) =>
+    `<button class="sb-locked-btn">
+       <span>${label}</span>
+       <span class="${badge === 'soon' ? 'sb-coming-soon' : 'sb-pro-badge'}">${badge === 'soon' ? T.sbComingSoon : 'Pro ✦'}</span>
+     </button>`;
+
+  // Quiz
+  const quizBlock = DEV
+    ? `<div class="sb-pro-item"><a href="quiz.html?dev=true" class="sb-pro-btn">${T.sbQuiz} →</a></div>`
+    : `<div class="sb-pro-item">${lockedBtn(T.sbQuiz, 'pro')}</div>`;
+
+  // Preset ranges
+  const presetOpts = (typeof PRESETS !== 'undefined')
+    ? PRESETS.map(p => `<option value="${p.id}">${FR ? p.label : p.labelEN}</option>`).join('')
+    : '';
+  const firstDesc = (typeof PRESETS !== 'undefined') ? (FR ? PRESETS[0].desc : PRESETS[0].descEN) : '';
+
+  const presetsBlock = DEV
+    ? `<div class="sb-pro-item">
+         <p class="sb-pro-label">${T.sbPresets}</p>
+         <div class="sb-preset-row">
+           <select id="presetSelect" class="sb-preset-select">${presetOpts}</select>
+           <button id="btnLoadPreset" class="sb-preset-load">${T.sbLoadPreset}</button>
+         </div>
+         <p id="presetDesc" class="sb-preset-desc">${firstDesc}</p>
+         <p class="sb-warning">${T.sbPresetWarning}</p>
+       </div>`
+    : `<div class="sb-pro-item">${lockedBtn(T.sbPresets, 'pro')}</div>`;
+
+  // Import/Export JSON
+  const jsonBlock = DEV
+    ? `<div class="sb-pro-item">
+         <p class="sb-pro-label">${T.sbImportExport}</p>
+         <div class="sb-json-row">
+           <button id="btnSbExportJson" class="sb-json-btn">${T.sbExport}</button>
+           <button id="btnSbImportJson" class="sb-json-btn">${T.sbImport}</button>
+         </div>
+       </div>`
+    : `<div class="sb-pro-item">${lockedBtn(T.sbImportExport, 'pro')}</div>`;
+
+  const html =
     `<button class="sidebar-close" id="btnSidebarClose">✕</button>`
+
+    // ── OUTILS ───────────────────────────────────────────────────────────────
+    + `<h3 class="sb-heading">${T.sbToolsHeader}</h3>`
+    + `<p class="sb-p" style="margin:4px 0 12px">${T.sbGuide}</p>`
 
     + `<h3 class="sb-heading">${T.sbShortcuts}</h3>`
     + shortcuts.map(s => row(s.key, s.label)).join('')
@@ -338,12 +407,43 @@ function buildSidebar() {
     + philosophy
 
     + `<h3 class="sb-heading">${T.sbChangelog}</h3>`
-    + changelog.map(c => clog(c.ver, c.note)).join('');
+    + changelog.map(c => clog(c.ver, c.note)).join('')
 
+    // ── PRO ──────────────────────────────────────────────────────────────────
+    + `<h3 class="sb-heading">${T.sbProHeader}</h3>`
+    + quizBlock
+    + presetsBlock
+    + jsonBlock
+    + `<div class="sb-pro-item">${lockedBtn(T.sbHistory, 'soon')}</div>`
+    + `<div class="sb-pro-item">${lockedBtn(T.sbCompare, 'soon')}</div>`
+    + (!DEV ? `<div class="sb-pro-unlock-wrap"><a href="premium.html" class="sb-pro-unlock">${T.sbUnlockPro}</a></div>` : '');
+
+  document.getElementById('sidebarInner').innerHTML = html;
+
+  // Wire events
   document.getElementById('btnSidebarClose').addEventListener('click', closeSidebar);
+
+  if (DEV) {
+    const sel = document.getElementById('presetSelect');
+    if (sel) {
+      sel.addEventListener('change', () => {
+        const p = PRESETS.find(x => x.id === sel.value);
+        const desc = document.getElementById('presetDesc');
+        if (p && desc) desc.textContent = FR ? p.desc : p.descEN;
+      });
+    }
+    document.getElementById('btnLoadPreset')?.addEventListener('click', loadPreset);
+    document.getElementById('btnSbExportJson')?.addEventListener('click', exportJSON);
+    document.getElementById('btnSbImportJson')?.addEventListener('click', importJSON);
+  } else {
+    document.querySelectorAll('.sb-locked-btn').forEach(btn => {
+      btn.addEventListener('click', () => { window.location.href = 'premium.html'; });
+    });
+  }
 }
 
-function openSidebar() {
+function openSidebar()  {
+  buildSidebar(); // rebuild each time so preset descriptions reset
   document.getElementById('sidebar').classList.add('open');
   document.getElementById('sidebarOverlay').classList.add('open');
 }
@@ -361,6 +461,7 @@ function applyCell(k, aid) {
   rangeState[sk][k] = aid;
   renderCell(k);
   updateStat();
+  updatePosPanel();
   buildSitTabs();
   save();
 }
@@ -379,6 +480,7 @@ function renderAll() {
   RANKS.forEach((_, r) => RANKS.forEach((__, c) => renderCell(cellKey(r, c))));
   updateStat();
   updateCtx();
+  updatePosPanel();
 }
 
 function updateStat() {
@@ -398,6 +500,25 @@ function updateCtx() {
   document.getElementById('ctxBox').textContent = fn(antes);
 }
 
+function updatePosPanel() {
+  const panel = document.getElementById('posPanel');
+  if (!panel) return;
+  const antes = document.getElementById('antesChk').checked;
+  const fn    = CTX[curSit] || CTX['open'];
+  let total = 0, sel = 0;
+  RANKS.forEach((_, r) => RANKS.forEach((__, c) => {
+    const k = cellKey(r, c);
+    total += combos(k);
+    if (((rangeState[stateKey()] || {})[k] || 0) > 0) sel += combos(k);
+  }));
+  const pct = ((sel / total) * 100).toFixed(1);
+  panel.innerHTML =
+    `<div class="pp-pos">${curPos}</div>`
+    + `<div class="pp-desc">${POS_DESC[curPos]}</div>`
+    + `<div class="pp-stat">${pct}% — <strong>${sel}</strong> combos</div>`
+    + `<div class="pp-ctx">${fn(antes)}</div>`;
+}
+
 // ── EXPORT / IMPORT ──────────────────────────────────────────────────────────
 
 function clearCurrent() {
@@ -407,67 +528,8 @@ function clearCurrent() {
   save();
 }
 
-function handsForAction(sk, actionId) {
-  return RANKS.flatMap((_, r) =>
-    RANKS.flatMap((__, c) => {
-      const k = cellKey(r, c);
-      return ((rangeState[sk] || {})[k] || 0) === actionId ? [k] : [];
-    })
-  );
-}
-
-function buildExportLines(sk, titleLine) {
-  const lines = [titleLine];
-  ACTIONS.slice(1).forEach(a => {
-    const hands = handsForAction(sk, a.id);
-    if (hands.length) lines.push(`${a.label} : ${hands.join(', ')}`);
-  });
-  if (notes[sk]) lines.push(`\nNotes : ${notes[sk]}`);
-  return lines;
-}
-
-function showExport(lines) {
-  const area = document.getElementById('exportArea');
-  document.getElementById('exportText').textContent = lines.join('\n');
-  area.style.display = 'block';
-  area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function toggleExport() {
-  const area = document.getElementById('exportArea');
-  if (area.style.display === 'block') { area.style.display = 'none'; return; }
-  const antes    = document.getElementById('antesChk').checked;
-  const sitLabel = SITUATIONS[curPos].find(x => x.id === curSit)?.label || curSit;
-  const title    = `## ${curPos} / ${sitLabel}${antes ? T.antesSuffix : ''}`;
-  showExport(buildExportLines(stateKey(), title));
-}
-
-function exportAll() {
-  const lines = [T.exportAllHeader];
-  POSITIONS.forEach(pos => {
-    lines.push(`## ${pos}`);
-    SITUATIONS[pos].forEach(sit => {
-      ['', '_antes'].forEach(suffix => {
-        const sk  = `${pos}_${sit.id}${suffix}`;
-        const sub = buildExportLines(sk, `### ${sit.label}${suffix ? T.antesSuffix : ''}`);
-        if (sub.length > 1) { lines.push(''); lines.push(...sub); }
-      });
-    });
-    lines.push('');
-  });
-  showExport(lines);
-}
-
-function copyExport() {
-  navigator.clipboard.writeText(document.getElementById('exportText').textContent).then(() => {
-    const btn = document.getElementById('btnCopy');
-    btn.textContent = T.copiedBtn;
-    setTimeout(() => { btn.textContent = T.copyBtn; }, 1500);
-  });
-}
-
 function exportJSON() {
-  const data = JSON.stringify({ version: '1.1', state: rangeState, notes }, null, 2);
+  const data = JSON.stringify({ version: '1.4', state: rangeState, notes }, null, 2);
   const link = document.createElement('a');
   link.download = 'poker-ranges.json';
   link.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
@@ -486,8 +548,14 @@ function onFileSelected(e) {
   reader.onload = ev => {
     try {
       const data = JSON.parse(ev.target.result);
-      if (data.state) Object.assign(rangeState, data.state);
-      if (data.notes) Object.assign(notes, data.notes);
+      Object.keys(rangeState).forEach(k => delete rangeState[k]);
+      // Handle both: {version, state, notes} and direct {BTN_open: {...}}
+      if (data.state && typeof data.state === 'object') {
+        Object.assign(rangeState, data.state);
+        if (data.notes) Object.assign(notes, data.notes);
+      } else {
+        Object.assign(rangeState, data);
+      }
       save();
       buildSitTabs();
       buildNotesGrid();
@@ -496,6 +564,29 @@ function onFileSelected(e) {
     e.target.value = '';
   };
   reader.readAsText(file);
+}
+
+// ── PRESET LOAD ───────────────────────────────────────────────────────────────
+
+function loadPreset() {
+  if (typeof PRESETS === 'undefined') return;
+  const sel = document.getElementById('presetSelect');
+  if (!sel) return;
+  const preset = PRESETS.find(p => p.id === sel.value);
+  if (!preset) return;
+  const name = FR ? preset.label : preset.labelEN;
+  const msg  = FR
+    ? `Charger les ranges « ${name} » ?\n\nCeci va écraser toutes tes ranges actuelles.`
+    : `Load "${name}" ranges?\n\nThis will overwrite all your current ranges.`;
+  if (!confirm(msg)) return;
+  Object.keys(rangeState).forEach(k => delete rangeState[k]);
+  Object.assign(rangeState, JSON.parse(JSON.stringify(preset.state)));
+  save();
+  buildSitTabs();
+  buildNotesGrid();
+  renderAll();
+  closeSidebar();
+  document.getElementById('saveStatus').textContent = T.sbPresetLoaded(name);
 }
 
 // ── PNG EXPORT ───────────────────────────────────────────────────────────────
@@ -537,10 +628,10 @@ function exportPNG() {
     });
   });
 
-  const antes    = document.getElementById('antesChk').checked;
-  const link     = document.createElement('a');
-  link.download  = `range_${curPos}_${curSit}${antes ? '_antes' : ''}.png`;
-  link.href      = canvas.toDataURL('image/png');
+  const antes   = document.getElementById('antesChk').checked;
+  const link    = document.createElement('a');
+  link.download = `range_${curPos}_${curSit}${antes ? '_antes' : ''}.png`;
+  link.href     = canvas.toDataURL('image/png');
   link.click();
 }
 
@@ -585,7 +676,6 @@ document.addEventListener('keydown', e => {
 
 load();
 applyI18n();
-buildSidebar();
 buildPosTabs();
 buildSitTabs();
 buildLegend();
@@ -596,5 +686,6 @@ renderAll();
 document.getElementById('antesChk').addEventListener('change', () => { buildSitTabs(); renderAll(); });
 document.getElementById('btnClear').addEventListener('click', clearCurrent);
 document.getElementById('btnPng').addEventListener('click', exportPNG);
-document.getElementById('btnHelp').addEventListener('click', openSidebar);
+document.getElementById('btnHamburger').addEventListener('click', openSidebar);
 document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+document.getElementById('fileInput').addEventListener('change', onFileSelected);

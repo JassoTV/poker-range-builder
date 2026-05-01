@@ -15,7 +15,7 @@
   </div>
   <div class="header-actions">
     <a href="premium.html" class="pro-link">Pro ✦</a>
-    <button class="btn-help" id="btnHelp" title="Help / Raccourcis">?</button>
+    <button class="btn-hamburger" id="btnHamburger" title="Menu">☰</button>
     <span class="save-status" id="saveStatus">Chargement…</span>
   </div>
 </header>
@@ -36,23 +36,26 @@
     <div id="sitTabs" class="tabs-group"></div>
   </section>
 
+  <!-- Context box: visible on small/medium screens, hidden on large (pos-panel takes over) -->
   <div class="ctx-box" id="ctxBox"></div>
 
-  <div class="top-bar">
-    <div class="legend" id="legend"></div>
-    <div class="stat" id="stat"></div>
-  </div>
-
-  <div class="grid-wrap">
-    <div class="grid" id="grid"></div>
-  </div>
-
-  <div class="toolbar">
-    <button class="btn" id="btnClear">Effacer</button>
-    <button class="btn btn-primary" id="btnPng">Export PNG</button>
-    <!-- dev-only: revealed by ?dev=true -->
-    <button class="btn btn-dev" id="btnImportJson" style="display:none">Import JSON</button>
-    <input type="file" id="fileInput" accept=".json" style="display:none">
+  <!-- Grid area: pos-panel appears on large screens -->
+  <div class="grid-area">
+    <div class="pos-panel" id="posPanel"></div>
+    <div class="grid-col">
+      <div class="top-bar">
+        <div class="legend" id="legend"></div>
+        <div class="stat" id="stat"></div>
+      </div>
+      <div class="grid-wrap">
+        <div class="grid" id="grid"></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="btnClear">Effacer</button>
+        <button class="btn btn-primary" id="btnPng">Export PNG</button>
+        <input type="file" id="fileInput" accept=".json" style="display:none">
+      </div>
+    </div>
   </div>
 
   <div class="notes-section">
@@ -68,36 +71,7 @@
   <div class="sidebar-inner" id="sidebarInner"></div>
 </aside>
 
+<script src="presets.js"></script>
 <script src="app.js"></script>
-<script>
-  // Dev access — index.html?dev=true reveals Pro tools for local testing
-  if (new URLSearchParams(location.search).get('dev') === 'true') {
-    document.getElementById('btnImportJson').style.display = '';
-    document.getElementById('btnImportJson').addEventListener('click', () =>
-      document.getElementById('fileInput').click()
-    );
-    document.getElementById('fileInput').addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        try {
-          const data = JSON.parse(ev.target.result);
-          // Clear then repopulate in-memory state from the imported object
-          // Format: {"BTN_open": {"AA": 1, ...}, ...}
-          Object.keys(rangeState).forEach(k => delete rangeState[k]);
-          Object.assign(rangeState, data);
-          // Persist and refresh
-          localStorage.setItem('prb_state', JSON.stringify(rangeState));
-          buildSitTabs();
-          buildNotesGrid();
-          renderAll();
-        } catch (_) {}
-        e.target.value = '';
-      };
-      reader.readAsText(file);
-    });
-  }
-</script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 'use strict';
 
-// ── SHARED DATA (mirrors app.js — no import available in vanilla JS) ─────────
+// ── SHARED DATA (mirrors app.js — no import in vanilla JS) ───────────────────
 
 const FR = navigator.language?.startsWith('fr');
 
@@ -10,38 +10,37 @@ const POSITIONS = ['BTN','CO','HJ','UTG','SB','BB'];
 
 const SITUATIONS = {
   BTN: [
-    { id:'open',     label: FR ? 'Open (1er)'       : 'Open (1st in)' },
+    { id:'open',     label: FR ? 'Open (1er)'      : 'Open (1st in)' },
     { id:'vs_limp',  label: 'vs Limp' },
     { id:'vs_raise', label: 'vs Raise' },
   ],
   CO: [
-    { id:'open',     label: FR ? 'Open (1er)'       : 'Open (1st in)' },
+    { id:'open',     label: FR ? 'Open (1er)'      : 'Open (1st in)' },
     { id:'vs_limp',  label: 'vs Limp' },
     { id:'vs_raise', label: 'vs Raise' },
   ],
   HJ: [
-    { id:'open',     label: FR ? 'Open (1er)'       : 'Open (1st in)' },
+    { id:'open',     label: FR ? 'Open (1er)'      : 'Open (1st in)' },
     { id:'vs_limp',  label: 'vs Limp' },
     { id:'vs_raise', label: 'vs Raise' },
   ],
   UTG: [
-    { id:'open',     label: FR ? 'Open (1er)'       : 'Open (1st in)' },
+    { id:'open',     label: FR ? 'Open (1er)'      : 'Open (1st in)' },
     { id:'vs_limp',  label: 'vs Limp' },
     { id:'vs_raise', label: 'vs Raise' },
   ],
   SB: [
     { id:'open_hu',    label: 'Open HU vs BB' },
-    { id:'open_multi', label: FR ? 'Open (multi)'   : 'Open (multi)' },
+    { id:'open_multi', label: FR ? 'Open (multi)'  : 'Open (multi)' },
     { id:'vs_raise',   label: 'vs Raise' },
   ],
   BB: [
     { id:'vs_open',  label: 'vs Open' },
-    { id:'vs_limp',  label: FR ? 'vs Limp (multi)'  : 'vs Limp (multi)' },
+    { id:'vs_limp',  label: FR ? 'vs Limp (multi)' : 'vs Limp (multi)' },
     { id:'vs_raise', label: 'vs Raise' },
   ],
 };
 
-// Action id 0 = unset; 1–4 are playable
 const ACTIONS = [
   { id:0, label: '',              bg:'#1e1e1e', text:'#444' },
   { id:1, label: 'Raise / Open', bg:'#1a3d1a', text:'#7ecc7e' },
@@ -50,23 +49,21 @@ const ACTIONS = [
   { id:4, label: 'Fold',         bg:'#3d0e0e', text:'#f08080' },
 ];
 
-const Q_TOTAL = 10;
-
 // ── QUIZ STATE ────────────────────────────────────────────────────────────────
 
-let questions = [];
-let currentQ  = 0;
-let score     = 0;
-let answered  = false;
+let Q_TOTAL      = 10;
+let infiniteMode = false;
+let questions    = [];
+let currentQ     = 0;
+let score        = 0;
+let answered     = false;
+let missed       = [];   // { q, chosenId }
 
 // ── POOL ─────────────────────────────────────────────────────────────────────
 
-// Returns all (pos, sit, hand, actionId) tuples that have an explicit action
-// saved in prb_state. Antes situations are excluded to keep the quiz focused.
 function buildPool() {
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem('prb_state') || '{}'); } catch (_) {}
-
   const pool = [];
   POSITIONS.forEach(pos => {
     SITUATIONS[pos].forEach(sit => {
@@ -80,11 +77,11 @@ function buildPool() {
   return pool;
 }
 
-// Sample n items from pool; wraps around if pool.length < n.
 function drawQuestions(pool) {
   const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  const count = infiniteMode ? Math.max(60, pool.length * 4) : Q_TOTAL;
   const out = [];
-  for (let i = 0; i < Q_TOTAL; i++) out.push(shuffled[i % shuffled.length]);
+  for (let i = 0; i < count; i++) out.push(shuffled[i % shuffled.length]);
   return out;
 }
 
@@ -93,7 +90,7 @@ function drawQuestions(pool) {
 function show(id) {
   ['quizStart','quizQuestion','quizResults','quizEmpty'].forEach(s => {
     const el = document.getElementById(s);
-    if (el) el.style.display = s === id ? '' : 'none';
+    if (el) el.style.display = (s === id) ? '' : 'none';
   });
 }
 
@@ -105,6 +102,8 @@ function startQuiz() {
   questions = drawQuestions(pool);
   currentQ  = 0;
   score     = 0;
+  missed    = [];
+  answered  = false;
   renderQuestion();
 }
 
@@ -112,22 +111,26 @@ function startQuiz() {
 
 function renderQuestion() {
   answered = false;
-  const q = questions[currentQ];
+  const q  = questions[currentQ];
 
-  // Progress
-  document.getElementById('qProgress').textContent = `${currentQ + 1} / ${Q_TOTAL}`;
+  // Progress + live score
+  const prog = infiniteMode
+    ? `${currentQ + 1} / ∞`
+    : `${currentQ + 1} / ${Q_TOTAL}`;
+  document.getElementById('qProgress').textContent = prog;
+  document.getElementById('qScoreLive').textContent = `${score} ✓`;
 
   // Context
   document.getElementById('qContext').innerHTML =
     `<strong>${q.pos}</strong> — ${q.sit.label}`;
 
   // Hand (large, coloured by type)
-  const handEl = document.getElementById('qHand');
+  const handEl   = document.getElementById('qHand');
   handEl.textContent = q.hand;
-  handEl.className = 'quiz-hand ' +
-    (q.hand.length === 2               ? 'hand-pair'
-   : q.hand.endsWith('s')             ? 'hand-suited'
-   :                                    'hand-offsuit');
+  handEl.className   = 'quiz-hand '
+    + (q.hand.length === 2   ? 'hand-pair'
+     : q.hand.endsWith('s') ? 'hand-suited'
+     :                        'hand-offsuit');
 
   // Prompt
   document.getElementById('qPrompt').textContent =
@@ -147,9 +150,11 @@ function renderQuestion() {
     wrap.appendChild(btn);
   });
 
-  // Hide feedback + next
+  // Hide feedback + next/stop
   document.getElementById('qFeedback').style.display = 'none';
   document.getElementById('btnNext').style.display   = 'none';
+  const stopBtn = document.getElementById('btnStop');
+  if (stopBtn) stopBtn.style.display = infiniteMode ? '' : 'none';
 
   show('quizQuestion');
 }
@@ -163,28 +168,32 @@ function handleAnswer(chosenId) {
   const q       = questions[currentQ];
   const correct = chosenId === q.actionId;
   if (correct) score++;
+  else         missed.push({ q, chosenId });
+
+  // Update live score immediately
+  document.getElementById('qScoreLive').textContent = `${score} ✓`;
 
   // Mark buttons
   document.querySelectorAll('.quiz-action-btn').forEach(btn => {
     btn.disabled = true;
     const id = parseInt(btn.dataset.id);
-    if (id === q.actionId)   btn.classList.add('btn-correct');
+    if (id === q.actionId)    btn.classList.add('btn-correct');
     else if (id === chosenId) btn.classList.add('btn-wrong');
   });
 
   // Feedback banner
-  const fb     = document.getElementById('qFeedback');
-  const label  = ACTIONS[q.actionId].label;
-  fb.className = 'quiz-feedback ' + (correct ? 'fb-correct' : 'fb-wrong');
+  const fb    = document.getElementById('qFeedback');
+  const label = ACTIONS[q.actionId].label;
+  fb.className  = 'quiz-feedback ' + (correct ? 'fb-correct' : 'fb-wrong');
   fb.textContent = correct
     ? (FR ? `✓ Correct — ${label}` : `✓ Correct — ${label}`)
     : (FR ? `✗ Incorrect — Bonne réponse : ${label}` : `✗ Wrong — Correct answer: ${label}`);
   fb.style.display = '';
 
   // Next / finish button
-  const nxt = document.getElementById('btnNext');
+  const nxt  = document.getElementById('btnNext');
   nxt.style.display = '';
-  const isLast = currentQ === Q_TOTAL - 1;
+  const isLast = !infiniteMode && currentQ === Q_TOTAL - 1;
   nxt.textContent = isLast
     ? (FR ? 'Voir le résultat →' : 'See results →')
     : (FR ? 'Suivant →'          : 'Next →');
@@ -193,30 +202,77 @@ function handleAnswer(chosenId) {
 // ── RESULTS ───────────────────────────────────────────────────────────────────
 
 function showResults() {
-  document.getElementById('qScoreNum').textContent = `${score} / ${Q_TOTAL}`;
+  const total = infiniteMode ? currentQ : Q_TOTAL;
+  const pct   = total > 0 ? score / total : 0;
+
+  document.getElementById('qScoreNum').textContent = `${score} / ${total}`;
 
   let msg;
-  if (FR) {
-    if (score === 10)     msg = 'Parfait — tu connais tes ranges par cœur.';
-    else if (score >= 8)  msg = 'Très bien — quelques spots à revoir.';
-    else if (score >= 6)  msg = 'Pas mal, continue à travailler.';
-    else                  msg = 'Retourne configurer tes ranges et réessaie.';
-  } else {
-    if (score === 10)     msg = 'Perfect — you know your ranges cold.';
-    else if (score >= 8)  msg = 'Great — a few spots to review.';
-    else if (score >= 6)  msg = 'Not bad, keep drilling.';
-    else                  msg = 'Go configure your ranges and try again.';
-  }
+  if (pct >= 1)        msg = FR ? 'Parfait — tu connais tes ranges par cœur.' : 'Perfect — you know your ranges cold.';
+  else if (pct >= 0.8) msg = FR ? 'Très bien — quelques spots à revoir.'     : 'Great — a few spots to review.';
+  else if (pct >= 0.6) msg = FR ? 'Pas mal, continue à travailler.'           : 'Not bad, keep drilling.';
+  else                  msg = FR ? 'Retourne configurer tes ranges et réessaie.' : 'Go configure your ranges and try again.';
   document.getElementById('qScoreMsg').textContent = msg;
+
+  // Missed hands list
+  const missedEl = document.getElementById('qMissed');
+  if (missedEl) {
+    if (missed.length === 0) {
+      missedEl.innerHTML = `<p class="missed-none">${FR ? 'Aucune erreur 🎉' : 'No mistakes 🎉'}</p>`;
+    } else {
+      const header = FR
+        ? `<p class="missed-header">${missed.length} erreur${missed.length > 1 ? 's' : ''} :</p>`
+        : `<p class="missed-header">${missed.length} mistake${missed.length > 1 ? 's' : ''} :</p>`;
+      const items = missed.map(m => {
+        const correctLabel = ACTIONS[m.q.actionId].label;
+        const handClass    = m.q.hand.length === 2 ? 'hand-pair'
+                           : m.q.hand.endsWith('s') ? 'hand-suited'
+                           : 'hand-offsuit';
+        return `<div class="missed-item">
+          <span class="missed-hand ${handClass}">${m.q.hand}</span>
+          <span class="missed-ctx">${m.q.pos} — ${m.q.sit.label}</span>
+          <span class="missed-answer">→ ${correctLabel}</span>
+        </div>`;
+      }).join('');
+      missedEl.innerHTML = header + `<div class="missed-list">${items}</div>`;
+    }
+  }
+
   show('quizResults');
 }
+
+// ── COUNT SELECTOR ────────────────────────────────────────────────────────────
+
+document.querySelectorAll('.quiz-count-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.quiz-count-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const val = parseInt(btn.dataset.count, 10);
+    if (val === 0) {
+      infiniteMode = true;
+      Q_TOTAL      = Infinity;
+    } else {
+      infiniteMode = false;
+      Q_TOTAL      = val;
+    }
+  });
+});
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 
 document.getElementById('btnStartQuiz').addEventListener('click', startQuiz);
+
 document.getElementById('btnNext').addEventListener('click', () => {
   currentQ++;
-  if (currentQ >= Q_TOTAL) showResults();
-  else renderQuestion();
+  if (!infiniteMode && currentQ >= Q_TOTAL) {
+    showResults();
+  } else if (currentQ >= questions.length) {
+    showResults(); // end of infinite batch
+  } else {
+    renderQuestion();
+  }
 });
+
+document.getElementById('btnStop')?.addEventListener('click', showResults);
+
 document.getElementById('btnRestart').addEventListener('click', startQuiz);
