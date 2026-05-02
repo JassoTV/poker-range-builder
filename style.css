@@ -441,60 +441,55 @@ button.btn.btn-dev:hover    { background: #4a3a0822; }
   }
   /* hide ctx-box when pos-panel is visible */
   .ctx-box { display: none; }
+  /* align tab rows with the grid column (panel 190px + gap 24px = 214px) */
+  section.row { margin-left: calc(190px + 24px); }
 }
 
-/* ── POS PANEL — progression ── */
-.pp-title {
+/* ── POS PANEL — résumé situation ── */
+.pp-pos-name {
+  font-size: 38px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 3px;
+  letter-spacing: -.01em;
+}
+.pp-pos-desc {
+  font-size: 10px;
+  color: var(--text3);
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+.pp-sit-row {
+  margin-bottom: 12px;
+}
+.pp-sit-label {
+  display: block;
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .1em;
   color: var(--text3);
-  margin-bottom: 14px;
+  margin-bottom: 4px;
 }
-.pp-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-bottom: 7px;
+.pp-sit-stat {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
 }
-.pp-row-pos {
+.pp-sit-combos {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text3);
+}
+.pp-ctx {
   font-size: 10px;
-  font-weight: 600;
-  color: var(--text3);
-  width: 30px;
-  flex-shrink: 0;
-}
-.pp-cur .pp-row-pos { color: var(--text); font-weight: 700; }
-.pp-bar {
-  flex: 1;
-  height: 4px;
-  background: var(--bg3);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.pp-bar-fill {
-  height: 100%;
-  background: var(--blue);
-  border-radius: 2px;
-  transition: width 0.25s;
-}
-.pp-cur .pp-bar-fill { background: var(--blue-text); }
-.pp-row-ct {
-  font-size: 9px;
-  color: var(--text3);
-  width: 24px;
-  text-align: right;
-  flex-shrink: 0;
-}
-.pp-cur .pp-row-ct { color: var(--text2); }
-.pp-total {
-  font-size: 10px;
-  color: var(--text3);
-  margin-top: 12px;
-  padding-top: 10px;
+  color: var(--text2);
+  line-height: 1.65;
+  padding-top: 12px;
   border-top: 1px solid var(--border);
-  line-height: 1.5;
 }
 
 /* ── SIDEBAR PRO SECTION ── */

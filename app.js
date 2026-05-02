@@ -350,6 +350,8 @@ function buildSidebar() {
     + '<p class="sb-p">Ranges vary by position because the number of players left to act changes your realizable equity and how often you end up out of position postflop.</p>';
 
   const changelog = [
+    { ver: 'v1.6', note: FR ? 'Presets corrigés (Conservateur/Solide/Expert), panel situation, alignement UI'
+                            : 'Corrected presets (Conservative/Solid/Expert), situation panel, UI alignment' },
     { ver: 'v1.5', note: FR ? 'Gumroad Pro, panel progression, notes par position, presets calibrés'
                             : 'Gumroad Pro, progress panel, position notes, calibrated presets' },
     { ver: 'v1.4', note: FR ? 'Sidebar universelle, ranges pré-remplies, quiz amélioré, features Pro'
@@ -519,43 +521,31 @@ function updatePosPanel() {
   const panel = document.getElementById('posPanel');
   if (!panel) return;
 
-  const suffix = document.getElementById('antesChk').checked ? '_antes' : '';
+  const antes = document.getElementById('antesChk').checked;
+  const sk    = stateKey();
 
-  let grandSel = 0;
-  const rows = POSITIONS.map(pos => {
-    const sits = SITUATIONS[pos];
-    let sitsDone = 0, posCombos = 0;
-    sits.forEach(sit => {
-      const hands = rangeState[`${pos}_${sit.id}${suffix}`] || {};
-      let sitC = 0;
-      Object.entries(hands).forEach(([k, v]) => { if (v > 0) sitC += combos(k); });
-      if (sitC > 0) sitsDone++;
-      posCombos += sitC;
-    });
-    grandSel += posCombos;
-    const nSits = sits.length;
-    const pct   = nSits > 0 ? (sitsDone / nSits) * 100 : 0;
-    return { pos, sitsDone, nSits, pct };
-  });
+  // Combos de la situation courante
+  let sel = 0;
+  RANKS.forEach((_, r) => RANKS.forEach((__, c) => {
+    const k = cellKey(r, c);
+    if (((rangeState[sk] || {})[k] || 0) > 0) sel += combos(k);
+  }));
+  const pct = ((sel / 1326) * 100).toFixed(1);
 
-  const title      = FR ? 'Ma progression' : 'My progress';
-  const totalLabel = FR
-    ? `${grandSel.toLocaleString('fr-FR')} combos définis`
-    : `${grandSel.toLocaleString()} combos defined`;
-
-  const progressRows = rows.map(r => {
-    const isCur = r.pos === curPos;
-    return `<div class="pp-row${isCur ? ' pp-cur' : ''}">
-      <span class="pp-row-pos">${r.pos}</span>
-      <div class="pp-bar"><div class="pp-bar-fill" style="width:${Math.round(r.pct)}%"></div></div>
-      <span class="pp-row-ct">${r.sitsDone}/${r.nSits}</span>
-    </div>`;
-  }).join('');
+  const sit      = SITUATIONS[curPos].find(s => s.id === curSit);
+  const sitLabel = sit ? sit.label : curSit;
+  const posDesc  = POS_DESC[curPos] || '';
+  const ctxFn    = CTX[curSit] || CTX['open'];
+  const ctxText  = ctxFn(antes);
 
   panel.innerHTML =
-    `<div class="pp-title">${title}</div>`
-    + progressRows
-    + `<div class="pp-total">${totalLabel}</div>`;
+    `<div class="pp-pos-name">${curPos}</div>`
+    + `<div class="pp-pos-desc">${posDesc}</div>`
+    + `<div class="pp-sit-row">`
+    +   `<span class="pp-sit-label">${sitLabel}</span>`
+    +   `<span class="pp-sit-stat">${pct}% <span class="pp-sit-combos">— ${sel} combos</span></span>`
+    + `</div>`
+    + `<div class="pp-ctx">${ctxText}</div>`;
 }
 
 // ── EXPORT / IMPORT ──────────────────────────────────────────────────────────
