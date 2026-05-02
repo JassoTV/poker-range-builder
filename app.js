@@ -147,6 +147,7 @@ let firstAction = null;
 
 const rangeState = {};
 const notes      = {};
+const posNotes   = {};   // keyed by position: BTN, CO, HJ, UTG, SB, BB
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -199,6 +200,7 @@ function buildPosTabs() {
       buildPosTabs();
       buildSitTabs();
       buildNotesGrid();
+      buildPosNoteSection();
       renderAll();
     });
     container.appendChild(btn);
@@ -310,6 +312,17 @@ function buildNotesGrid() {
   });
 }
 
+function buildPosNoteSection() {
+  const titleEl = document.getElementById('posNotesTitle');
+  const ta      = document.getElementById('posNoteTextarea');
+  if (!titleEl || !ta) return;
+  titleEl.textContent = (FR ? 'Notes — ' : 'Notes — ') + curPos;
+  ta.placeholder      = FR ? `Notes générales sur la position ${curPos}…`
+                           : `General notes on ${curPos} position…`;
+  ta.value            = posNotes[curPos] || '';
+  ta.oninput          = () => { posNotes[curPos] = ta.value; save(); };
+}
+
 // ── SIDEBAR ──────────────────────────────────────────────────────────────────
 
 function buildSidebar() {
@@ -337,6 +350,8 @@ function buildSidebar() {
     + '<p class="sb-p">Ranges vary by position because the number of players left to act changes your realizable equity and how often you end up out of position postflop.</p>';
 
   const changelog = [
+    { ver: 'v1.5', note: FR ? 'Gumroad Pro, panel progression, notes par position, presets calibrés'
+                            : 'Gumroad Pro, progress panel, position notes, calibrated presets' },
     { ver: 'v1.4', note: FR ? 'Sidebar universelle, ranges pré-remplies, quiz amélioré, features Pro'
                             : 'Universal sidebar, preset ranges, improved quiz, Pro features' },
     { ver: 'v1.3', note: FR ? 'Fix Import JSON, accès dev (?dev=true)' : 'Import JSON fix, dev access (?dev=true)' },
@@ -503,20 +518,44 @@ function updateCtx() {
 function updatePosPanel() {
   const panel = document.getElementById('posPanel');
   if (!panel) return;
-  const antes = document.getElementById('antesChk').checked;
-  const fn    = CTX[curSit] || CTX['open'];
-  let total = 0, sel = 0;
-  RANKS.forEach((_, r) => RANKS.forEach((__, c) => {
-    const k = cellKey(r, c);
-    total += combos(k);
-    if (((rangeState[stateKey()] || {})[k] || 0) > 0) sel += combos(k);
-  }));
-  const pct = ((sel / total) * 100).toFixed(1);
+
+  const suffix = document.getElementById('antesChk').checked ? '_antes' : '';
+
+  let grandSel = 0;
+  const rows = POSITIONS.map(pos => {
+    const sits = SITUATIONS[pos];
+    let sitsDone = 0, posCombos = 0;
+    sits.forEach(sit => {
+      const hands = rangeState[`${pos}_${sit.id}${suffix}`] || {};
+      let sitC = 0;
+      Object.entries(hands).forEach(([k, v]) => { if (v > 0) sitC += combos(k); });
+      if (sitC > 0) sitsDone++;
+      posCombos += sitC;
+    });
+    grandSel += posCombos;
+    const nSits = sits.length;
+    const pct   = nSits > 0 ? (sitsDone / nSits) * 100 : 0;
+    return { pos, sitsDone, nSits, pct };
+  });
+
+  const title      = FR ? 'Ma progression' : 'My progress';
+  const totalLabel = FR
+    ? `${grandSel.toLocaleString('fr-FR')} combos définis`
+    : `${grandSel.toLocaleString()} combos defined`;
+
+  const progressRows = rows.map(r => {
+    const isCur = r.pos === curPos;
+    return `<div class="pp-row${isCur ? ' pp-cur' : ''}">
+      <span class="pp-row-pos">${r.pos}</span>
+      <div class="pp-bar"><div class="pp-bar-fill" style="width:${Math.round(r.pct)}%"></div></div>
+      <span class="pp-row-ct">${r.sitsDone}/${r.nSits}</span>
+    </div>`;
+  }).join('');
+
   panel.innerHTML =
-    `<div class="pp-pos">${curPos}</div>`
-    + `<div class="pp-desc">${POS_DESC[curPos]}</div>`
-    + `<div class="pp-stat">${pct}% — <strong>${sel}</strong> combos</div>`
-    + `<div class="pp-ctx">${fn(antes)}</div>`;
+    `<div class="pp-title">${title}</div>`
+    + progressRows
+    + `<div class="pp-total">${totalLabel}</div>`;
 }
 
 // ── EXPORT / IMPORT ──────────────────────────────────────────────────────────
@@ -529,7 +568,7 @@ function clearCurrent() {
 }
 
 function exportJSON() {
-  const data = JSON.stringify({ version: '1.4', state: rangeState, notes }, null, 2);
+  const data = JSON.stringify({ version: '1.5', state: rangeState, notes, posNotes }, null, 2);
   const link = document.createElement('a');
   link.download = 'poker-ranges.json';
   link.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
@@ -552,13 +591,15 @@ function onFileSelected(e) {
       // Handle both: {version, state, notes} and direct {BTN_open: {...}}
       if (data.state && typeof data.state === 'object') {
         Object.assign(rangeState, data.state);
-        if (data.notes) Object.assign(notes, data.notes);
+        if (data.notes)    Object.assign(notes,    data.notes);
+        if (data.posNotes) Object.assign(posNotes, data.posNotes);
       } else {
         Object.assign(rangeState, data);
       }
       save();
       buildSitTabs();
       buildNotesGrid();
+      buildPosNoteSection();
       renderAll();
     } catch (_) {}
     e.target.value = '';
@@ -640,8 +681,9 @@ function exportPNG() {
 
 function save() {
   try {
-    localStorage.setItem('prb_state', JSON.stringify(rangeState));
-    localStorage.setItem('prb_notes', JSON.stringify(notes));
+    localStorage.setItem('prb_state',     JSON.stringify(rangeState));
+    localStorage.setItem('prb_notes',     JSON.stringify(notes));
+    localStorage.setItem('prb_pos_notes', JSON.stringify(posNotes));
     const t = new Date().toLocaleTimeString(FR ? 'fr-FR' : 'en-US', { hour:'2-digit', minute:'2-digit' });
     document.getElementById('saveStatus').textContent = T.savedAt + t;
   } catch (_) {}
@@ -651,8 +693,10 @@ function load() {
   try {
     const s = localStorage.getItem('prb_state');
     const n = localStorage.getItem('prb_notes');
+    const p = localStorage.getItem('prb_pos_notes');
     if (s) Object.assign(rangeState, JSON.parse(s));
-    if (n) Object.assign(notes, JSON.parse(n));
+    if (n) Object.assign(notes,      JSON.parse(n));
+    if (p) Object.assign(posNotes,   JSON.parse(p));
     document.getElementById('saveStatus').textContent = T.loaded;
   } catch (_) {
     document.getElementById('saveStatus').textContent = T.newFile;
@@ -682,6 +726,7 @@ buildSitTabs();
 buildLegend();
 buildGrid();
 buildNotesGrid();
+buildPosNoteSection();
 renderAll();
 
 document.getElementById('antesChk').addEventListener('change', () => { buildSitTabs(); renderAll(); });
