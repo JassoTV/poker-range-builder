@@ -4,6 +4,22 @@
 // Self-contained — no dependency on app.js.
 // state format mirrors prb_state: { "POS_sitId": { "handKey": actionId } }
 // actionId: 1=Raise/Open  2=Call/Limp  3=3-Bet  4=Fold
+//
+// State key conventions (must match stateKey() in app.js):
+//   {POS}_{sitId}           e.g. BTN_open, BTN_vs_limp, BB_vs_open
+//   {POS}_{sitId}_antes     antes variant
+//
+// Situations per position (from SITUATIONS in app.js):
+//   BTN/CO/HJ/UTG : open | vs_limp | vs_raise
+//   SB            : open_hu | open_multi | vs_raise
+//   BB            : vs_open | vs_limp | vs_raise
+//
+// vs_limp logic (all positions except BB):
+//   ISO raise = strong pairs (77+/88+/99+ depending on position) + suited aces + suited connectors
+//   Small pairs 22-66 = fold (no ISO raise from non-BB positions)
+//   UTG = Raise-or-Fold only (no Call/Limp) in vs_limp AND vs_raise
+//
+// BB vs_limp: action 1 = ISO raise, action 2 = check/defend
 
 function _buildPresetState(def) {
   const state = {};
@@ -19,8 +35,10 @@ function _buildPresetState(def) {
 
 const PRESETS = [
 
-  // ── CONSERVATEUR ─────────────────────────────────────────────────────────────
-  // UTG ~12%  HJ ~16%  CO ~22%  BTN ~32%  SB ~35%
+  // ══════════════════════════════════════════════════════════════════════════
+  // CONSERVATEUR — ranges serrées pour débutants
+  // Open: UTG ~12%  HJ ~16%  CO ~22%  BTN ~32%  SB ~35%
+  // ══════════════════════════════════════════════════════════════════════════
   {
     id:      'conservateur',
     label:   'Conservateur',
@@ -29,7 +47,7 @@ const PRESETS = [
     descEN:  'Tight ranges for beginners. Easy to play and defend.',
     state: _buildPresetState({
 
-      // ── Opens ─────────────────────────────────────────────────────────────
+      // ── BTN ──────────────────────────────────────────────────────────────
       BTN_open: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66','55','44',
         'AKs','AQs','AJs','ATs','A9s','A8s',
@@ -46,6 +64,24 @@ const PRESETS = [
         'KQo','KJo',
         'QJs','JTs','T9s','98s','87s','76s','65s',
       ]},
+      BTN_vs_limp: { 1: [
+        'AA','KK','QQ','JJ','TT','99',
+        'AKs','AQs','AJs','ATs',
+        'AKo','AQo','AJo','ATo',
+        'KQs','KJs','QJs','JTs','T9s',
+        'KQo',
+      ]},
+      BTN_vs_limp_antes: { 1: [
+        'AA','KK','QQ','JJ','TT','99','88',
+        'AKs','AQs','AJs','ATs','A9s',
+        'AKo','AQo','AJo','ATo',
+        'KQs','KJs','QJs','JTs','T9s','98s',
+        'KQo','KJo',
+      ]},
+      BTN_vs_raise: { 3: ['AA','KK','QQ','JJ','AKs','AKo'] },
+      BTN_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','AKs','AKo'] },
+
+      // ── CO ───────────────────────────────────────────────────────────────
       CO_open: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66','55',
         'AKs','AQs','AJs','ATs','A9s',
@@ -62,6 +98,24 @@ const PRESETS = [
         'KQo',
         'QJs','JTs','T9s',
       ]},
+      CO_vs_limp: { 1: [
+        'AA','KK','QQ','JJ','TT',
+        'AKs','AQs','AJs','ATs',
+        'AKo','AQo','AJo',
+        'KQs','KJs','QJs','JTs',
+        'KQo',
+      ]},
+      CO_vs_limp_antes: { 1: [
+        'AA','KK','QQ','JJ','TT','99',
+        'AKs','AQs','AJs','ATs','A9s',
+        'AKo','AQo','AJo',
+        'KQs','KJs','QJs','JTs','T9s',
+        'KQo','KJo',
+      ]},
+      CO_vs_raise: { 3: ['AA','KK','QQ','AKs','AKo'] },
+      CO_vs_raise_antes: { 3: ['AA','KK','QQ','AKs','AKo'] },
+
+      // ── HJ ───────────────────────────────────────────────────────────────
       HJ_open: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66',
         'AKs','AQs','AJs','ATs',
@@ -76,6 +130,22 @@ const PRESETS = [
         'KQs','KJs',
         'KQo','QJs','JTs',
       ]},
+      HJ_vs_limp: { 1: [
+        'AA','KK','QQ','JJ','TT',
+        'AKs','AQs','AJs',
+        'AKo','AQo',
+        'KQs','KJs',
+      ]},
+      HJ_vs_limp_antes: { 1: [
+        'AA','KK','QQ','JJ','TT','99',
+        'AKs','AQs','AJs','ATs',
+        'AKo','AQo','AJo',
+        'KQs','KJs','QJs',
+      ]},
+      HJ_vs_raise: { 3: ['AA','KK','QQ','AKs','AKo'] },
+      HJ_vs_raise_antes: { 3: ['AA','KK','QQ','AKs','AKo'] },
+
+      // ── UTG — Raise-or-Fold uniquement ────────────────────────────────────
       UTG_open: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77',
         'AKs','AQs','AJs','ATs',
@@ -88,6 +158,12 @@ const PRESETS = [
         'AKo','AQo','AJo',
         'KQs','KJs',
       ]},
+      UTG_vs_limp: { 1: ['AA','KK','QQ','JJ','AKs','AKo'] },
+      UTG_vs_limp_antes: { 1: ['AA','KK','QQ','JJ','TT','AKs','AQs','AKo'] },
+      UTG_vs_raise: { 3: ['AA','KK','AKs'] },
+      UTG_vs_raise_antes: { 3: ['AA','KK','QQ','AKs'] },
+
+      // ── SB ───────────────────────────────────────────────────────────────
       SB_open_hu: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66','55','44',
         'AKs','AQs','AJs','ATs','A9s','A8s','A7s',
@@ -117,16 +193,10 @@ const PRESETS = [
         'AKo','AQo','AJo','ATo',
         'KQs','KJs','QJs',
       ]},
+      SB_vs_raise: { 3: ['AA','KK','QQ','AKs','AKo'] },
+      SB_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','AKs','AKo'] },
 
-      // ── Vs Raise ──────────────────────────────────────────────────────────
-      SB_vs_raise:   { 3: ['AA','KK','QQ','AKs','AKo'] },
-      BB_vs_raise:   { 3: ['AA','KK','QQ','JJ','AKs','AKo'] },
-      BTN_vs_raise:  { 3: ['AA','KK','QQ','JJ','AKs','AKo'] },
-      CO_vs_raise:   { 3: ['AA','KK','QQ','AKs','AKo'] },
-      HJ_vs_raise:   { 3: ['AA','KK','QQ','AKs','AKo'] },
-      UTG_vs_raise:  { 3: ['AA','KK','AKs'] },
-
-      // ── Vs Open (BB) ──────────────────────────────────────────────────────
+      // ── BB ───────────────────────────────────────────────────────────────
       BB_vs_open: {
         3: ['AA','KK','QQ','AKs','AKo'],
         2: [
@@ -137,40 +207,36 @@ const PRESETS = [
           'KQo','KJo',
         ],
       },
-
-      // ── Vs Limp ───────────────────────────────────────────────────────────
-      BTN_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88','77',
-        'AKs','AQs','AJs','ATs',
-        'AKo','AQo','AJo',
-        'KQs','KJs','QJs',
-      ]},
-      CO_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88',
-        'AKs','AQs','AJs',
-        'AKo','AQo',
-        'KQs',
-      ]},
-      HJ_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT','99',
-        'AKs','AQs',
-        'AKo','AQo',
-      ]},
-      UTG_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT',
-        'AKs','AKo',
-      ]},
-      BB_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88','77','66',
-        'AKs','AQs','AJs','ATs','A9s',
-        'AKo','AQo','AJo','ATo',
-        'KQs','KJs','QJs','JTs',
-      ]},
+      BB_vs_open_antes: {
+        3: ['AA','KK','QQ','JJ','AKs','AKo'],
+        2: [
+          'TT','99','88','77','66','55','44','33','22',
+          'AQs','AJs','ATs','A9s','A8s','A7s',
+          'AQo','AJo','ATo','A9o',
+          'KQs','KJs','KTs','K9s','QJs','JTs','T9s','98s','87s','76s','65s','54s',
+          'KQo','KJo',
+        ],
+      },
+      BB_vs_limp: {
+        1: ['AA','KK','QQ','JJ','TT','AKs','AQs','AJs','ATs','AKo','AQo','AJo','KQs','KJs','QJs','JTs'],
+        2: ['99','88','77','66','55','44','33','22','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
+            'ATo','A9o','KQo','KTs','K9s','T9s','98s','87s','76s','65s','54s'],
+      },
+      BB_vs_limp_antes: {
+        1: ['AA','KK','QQ','JJ','TT','99','AKs','AQs','AJs','ATs','A5s','AKo','AQo','AJo','ATo','KQs','KJs','QJs','JTs','T9s'],
+        2: ['88','77','66','55','44','33','22','A9s','A8s','A7s','A6s','A4s','A3s','A2s',
+            'A9o','A8o','KQo','KJo','KTs','K9s','QTs','98s','87s','76s','65s','54s'],
+      },
+      BB_vs_raise: { 3: ['AA','KK','QQ','JJ','AKs','AKo'] },
+      BB_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','AKs','AKo'] },
     }),
   },
 
-  // ── SOLIDE ───────────────────────────────────────────────────────────────────
-  // UTG ~18%  HJ ~21%  CO ~28%  BTN ~44%  SB ~55%
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SOLIDE — ranges standard 6-max 100bb
+  // Open: UTG ~18%  HJ ~21%  CO ~28%  BTN ~44%  SB ~55%
+  // ══════════════════════════════════════════════════════════════════════════
   {
     id:      'solide',
     label:   'Solide',
@@ -179,7 +245,7 @@ const PRESETS = [
     descEN:  'Balanced ranges — standard 6-max 100bb. Recommended for intermediate players.',
     state: _buildPresetState({
 
-      // ── Opens ─────────────────────────────────────────────────────────────
+      // ── BTN ──────────────────────────────────────────────────────────────
       BTN_open: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33',
         'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
@@ -218,6 +284,24 @@ const PRESETS = [
         'T9o','T8o',
         '98o','87o',
       ]},
+      BTN_vs_limp: { 1: [
+        'AA','KK','QQ','JJ','TT','99','88',
+        'AKs','AQs','AJs','ATs','A9s','A5s','A4s',
+        'AKo','AQo','AJo','ATo',
+        'KQs','KJs','KTs','QJs','JTs','T9s','98s','87s',
+        'KQo','KJo','QJo',
+      ]},
+      BTN_vs_limp_antes: { 1: [
+        'AA','KK','QQ','JJ','TT','99','88','77',
+        'AKs','AQs','AJs','ATs','A9s','A8s','A5s','A4s',
+        'AKo','AQo','AJo','ATo',
+        'KQs','KJs','KTs','QJs','JTs','T9s','98s','87s','76s','65s',
+        'KQo','KJo','QJo',
+      ]},
+      BTN_vs_raise: { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s','A4s'] },
+      BTN_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s','A4s','A3s'] },
+
+      // ── CO ───────────────────────────────────────────────────────────────
       CO_open: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33',
         'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
@@ -255,6 +339,24 @@ const PRESETS = [
         'T9o',
         'A8o','A7o',
       ]},
+      CO_vs_limp: { 1: [
+        'AA','KK','QQ','JJ','TT','99',
+        'AKs','AQs','AJs','ATs','A9s','A5s',
+        'AKo','AQo','AJo',
+        'KQs','KJs','KTs','QJs','JTs','T9s',
+        'KQo','KJo',
+      ]},
+      CO_vs_limp_antes: { 1: [
+        'AA','KK','QQ','JJ','TT','99','88',
+        'AKs','AQs','AJs','ATs','A9s','A8s','A5s','A4s',
+        'AKo','AQo','AJo','ATo',
+        'KQs','KJs','KTs','QJs','JTs','T9s','98s','87s',
+        'KQo','KJo','QJo',
+      ]},
+      CO_vs_raise: { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s'] },
+      CO_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s','A4s'] },
+
+      // ── HJ ───────────────────────────────────────────────────────────────
       HJ_open: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66','55',
         'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
@@ -280,6 +382,24 @@ const PRESETS = [
         'QJo','QTo',
         'JTo',
       ]},
+      HJ_vs_limp: { 1: [
+        'AA','KK','QQ','JJ','TT','99',
+        'AKs','AQs','AJs','ATs','A9s',
+        'AKo','AQo','AJo',
+        'KQs','KJs','QJs','JTs',
+        'KQo','KJo',
+      ]},
+      HJ_vs_limp_antes: { 1: [
+        'AA','KK','QQ','JJ','TT','99','88',
+        'AKs','AQs','AJs','ATs','A9s','A5s',
+        'AKo','AQo','AJo','ATo',
+        'KQs','KJs','QJs','JTs','T9s',
+        'KQo','KJo',
+      ]},
+      HJ_vs_raise: { 3: ['AA','KK','QQ','AKs','AKo','AQs'] },
+      HJ_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s'] },
+
+      // ── UTG — Raise-or-Fold uniquement ────────────────────────────────────
       UTG_open: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66',
         'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s',
@@ -302,18 +422,24 @@ const PRESETS = [
         'KQo','KJo','KTo',
         'QJo',
       ]},
+      UTG_vs_limp: { 1: ['AA','KK','QQ','JJ','TT','AKs','AQs','AKo','AQo','KQs'] },
+      UTG_vs_limp_antes: { 1: ['AA','KK','QQ','JJ','TT','99','AKs','AQs','AJs','AKo','AQo','KQs','KJs'] },
+      UTG_vs_raise: { 3: ['AA','KK','AKs','AKo'] },
+      UTG_vs_raise_antes: { 3: ['AA','KK','QQ','AKs','AKo'] },
+
+      // ── SB ───────────────────────────────────────────────────────────────
       SB_open_hu: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33','22',
         'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
         'AKo','AQo','AJo','ATo','A9o','A8o','A7o','A6o','A5o','A4o',
         'KQs','KJs','KTs','K9s','K8s','K7s','K6s','K5s','K4s','K3s','K2s',
-        'QJs','QTs','Q9s','Q8s','Q7s','Q6s','Q5s','Q4s','Q3s','Q2s',
-        'JTs','J9s','J8s','J7s','J6s','J5s','J4s','J3s','J2s',
-        'T9s','T8s','T7s','T6s','T5s','T4s','T3s',
-        '98s','97s','96s','95s','94s',
-        '87s','86s','85s','84s',
-        '76s','75s','74s',
-        '65s','64s','63s',
+        'QJs','QTs','Q9s','Q8s','Q7s','Q6s','Q5s','Q4s','Q3s',
+        'JTs','J9s','J8s','J7s','J6s','J5s','J4s',
+        'T9s','T8s','T7s','T6s',
+        '98s','97s','96s',
+        '87s','86s','85s',
+        '76s','75s',
+        '65s','64s',
         '54s','53s',
         'KQo','KJo','KTo','K9o','K8o','K7o','K6o','K5o','K4o',
         'QJo','QTo','Q9o','Q8o','Q7o','Q6o','Q5o',
@@ -328,12 +454,12 @@ const PRESETS = [
         'AKo','AQo','AJo','ATo','A9o','A8o','A7o','A6o','A5o','A4o','A3o',
         'KQs','KJs','KTs','K9s','K8s','K7s','K6s','K5s','K4s','K3s','K2s',
         'QJs','QTs','Q9s','Q8s','Q7s','Q6s','Q5s','Q4s','Q3s','Q2s',
-        'JTs','J9s','J8s','J7s','J6s','J5s','J4s','J3s','J2s',
-        'T9s','T8s','T7s','T6s','T5s','T4s','T3s',
-        '98s','97s','96s','95s','94s',
-        '87s','86s','85s','84s',
-        '76s','75s','74s',
-        '65s','64s','63s',
+        'JTs','J9s','J8s','J7s','J6s','J5s','J4s','J3s',
+        'T9s','T8s','T7s','T6s',
+        '98s','97s','96s',
+        '87s','86s','85s',
+        '76s','75s',
+        '65s','64s',
         '54s','53s',
         'KQo','KJo','KTo','K9o','K8o','K7o','K6o','K5o','K4o',
         'QJo','QTo','Q9o','Q8o','Q7o','Q6o','Q5o',
@@ -364,18 +490,12 @@ const PRESETS = [
         '98s','87s','76s','65s','54s',
         'KQo','KJo','KTo',
       ]},
+      SB_vs_raise: { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s','A4s'],
+                     2: ['TT','99','AJs','ATs','KQs'] },
+      SB_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','TT','AKs','AKo','AQs','A5s','A4s','A3s'],
+                           2: ['99','AJs','ATs','KQs','KJs'] },
 
-      // ── Vs Raise ──────────────────────────────────────────────────────────
-      SB_vs_raise:   { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s','A4s'],
-                       2: ['TT','99','AJs','ATs','KQs'] },
-      BB_vs_raise:   { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s'],
-                       2: ['TT','99','AJs','ATs','KQs','KJs'] },
-      BTN_vs_raise:  { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s','A4s'] },
-      CO_vs_raise:   { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s'] },
-      HJ_vs_raise:   { 3: ['AA','KK','QQ','AKs','AKo','AQs'] },
-      UTG_vs_raise:  { 3: ['AA','KK','AKs','AKo'] },
-
-      // ── Vs Open (BB) ──────────────────────────────────────────────────────
+      // ── BB ───────────────────────────────────────────────────────────────
       BB_vs_open: {
         3: ['AA','KK','QQ','AKs','AKo','AQs'],
         2: [
@@ -387,45 +507,61 @@ const PRESETS = [
           'KQo','KJo','QJo',
         ],
       },
-
-      // ── Vs Limp ───────────────────────────────────────────────────────────
-      BTN_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88','77','66','55',
-        'AKs','AQs','AJs','ATs','A9s','A8s',
-        'AKo','AQo','AJo','ATo',
-        'KQs','KJs','KTs','QJs','JTs','T9s','98s','87s',
-        'KQo','KJo','QJo',
-      ]},
-      CO_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88','77',
-        'AKs','AQs','AJs','ATs','A9s',
-        'AKo','AQo','AJo',
-        'KQs','KJs','QJs','JTs','KQo',
-      ]},
-      HJ_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88',
-        'AKs','AQs','AJs','ATs',
-        'AKo','AQo','AJo',
-        'KQs','KJs','QJs','KQo',
-      ]},
-      UTG_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT','99',
-        'AKs','AQs','AJs',
-        'AKo','AQo',
-        'KQs','KQo',
-      ]},
-      BB_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33','22',
-        'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A5s','A4s',
-        'AKo','AQo','AJo','ATo',
-        'KQs','KJs','KTs','QJs','JTs','T9s','98s','87s','76s',
-        'KQo','KJo','QJo',
-      ]},
+      BB_vs_open_antes: {
+        3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s'],
+        2: [
+          'TT','99','88','77','66','55','44','33','22',
+          'AJs','ATs','A9s','A8s','A7s','A6s','A4s','A3s','A2s',
+          'AQo','AJo','ATo','A9o',
+          'KQs','KJs','KTs','K9s','QJs','QTs','Q9s','JTs','J9s',
+          'T9s','T8s','98s','87s','76s','65s','54s',
+          'KQo','KJo','KTo','QJo',
+        ],
+      },
+      BB_vs_limp: {
+        1: [
+          'AA','KK','QQ','JJ','TT','99','88',
+          'AKs','AQs','AJs','ATs','A5s','A4s',
+          'AKo','AQo','AJo','ATo',
+          'KQs','KJs','KTs','QJs','JTs','T9s','98s',
+          'KQo','KJo','QJo',
+        ],
+        2: [
+          '77','66','55','44','33','22',
+          'A9s','A8s','A7s','A6s','A3s','A2s',
+          'A9o','A8o',
+          'K9s','K8s','K7s','K6s','Q9s','Q8s','J9s','J8s',
+          '87s','76s','65s','54s',
+        ],
+      },
+      BB_vs_limp_antes: {
+        1: [
+          'AA','KK','QQ','JJ','TT','99','88','77',
+          'AKs','AQs','AJs','ATs','A9s','A5s','A4s',
+          'AKo','AQo','AJo','ATo',
+          'KQs','KJs','KTs','QJs','JTs','T9s','98s','87s',
+          'KQo','KJo','QJo',
+        ],
+        2: [
+          '66','55','44','33','22',
+          'A8s','A7s','A6s','A3s','A2s',
+          'A9o','A8o','A7o',
+          'K9s','K8s','K7s','Q9s','Q8s','J9s',
+          '76s','65s','54s',
+        ],
+      },
+      BB_vs_raise: { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s'],
+                     2: ['TT','99','AJs','ATs','KQs','KJs'] },
+      BB_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','TT','AKs','AKo','AQs','A5s','A4s'],
+                           2: ['99','88','AJs','ATs','A9s','KQs','KJs','QJs'] },
     }),
   },
 
-  // ── EXPERT ───────────────────────────────────────────────────────────────────
-  // UTG ~17%  HJ ~21%  CO ~27%  BTN ~51%  SB ~62%
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // EXPERT — ranges GTO complètes
+  // Open: UTG ~17%  HJ ~21%  CO ~27%  BTN ~51%  SB ~62%
+  // ══════════════════════════════════════════════════════════════════════════
   {
     id:      'expert',
     label:   'Expert',
@@ -434,7 +570,7 @@ const PRESETS = [
     descEN:  'Full GTO ranges for advanced players — BTN ~51%, UTG ~17%.',
     state: _buildPresetState({
 
-      // ── Opens ─────────────────────────────────────────────────────────────
+      // ── BTN ──────────────────────────────────────────────────────────────
       BTN_open: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33','22',
         'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
@@ -477,6 +613,26 @@ const PRESETS = [
         '98o','97o',
         '87o','76o','65o',
       ]},
+      BTN_vs_limp: { 1: [
+        'AA','KK','QQ','JJ','TT','99','88','77',
+        'AKs','AQs','AJs','ATs','A9s','A8s','A5s','A4s','A3s','A2s',
+        'AKo','AQo','AJo','ATo','A9o',
+        'KQs','KJs','KTs','K9s','QJs','QTs','JTs','J9s','T9s','T8s','98s','87s','76s','65s',
+        'KQo','KJo','KTo','QJo','JTo',
+      ]},
+      BTN_vs_limp_antes: { 1: [
+        'AA','KK','QQ','JJ','TT','99','88','77','66',
+        'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A5s','A4s','A3s','A2s',
+        'AKo','AQo','AJo','ATo','A9o','A8o',
+        'KQs','KJs','KTs','K9s','QJs','QTs','JTs','J9s','T9s','T8s','98s','97s','87s','86s','76s','65s','54s',
+        'KQo','KJo','KTo','QJo','QTo','JTo',
+      ]},
+      BTN_vs_raise: { 3: ['AA','KK','QQ','JJ','TT','AKs','AKo','AQs','A5s','A4s','A3s','KQs'],
+                      2: ['99','AJs','ATs','KJs','JTs'] },
+      BTN_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','TT','AKs','AKo','AQs','A5s','A4s','A3s','A2s','KQs'],
+                            2: ['99','88','AJs','ATs','KJs','JTs','T9s'] },
+
+      // ── CO ───────────────────────────────────────────────────────────────
       CO_open: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33','22',
         'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
@@ -512,6 +668,26 @@ const PRESETS = [
         'JTo','J9o',
         'T9o',
       ]},
+      CO_vs_limp: { 1: [
+        'AA','KK','QQ','JJ','TT','99','88',
+        'AKs','AQs','AJs','ATs','A9s','A8s','A5s','A4s',
+        'AKo','AQo','AJo','ATo',
+        'KQs','KJs','KTs','QJs','JTs','T9s','98s','87s',
+        'KQo','KJo','QJo',
+      ]},
+      CO_vs_limp_antes: { 1: [
+        'AA','KK','QQ','JJ','TT','99','88','77',
+        'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A5s','A4s','A3s',
+        'AKo','AQo','AJo','ATo',
+        'KQs','KJs','KTs','K9s','QJs','QTs','JTs','J9s','T9s','T8s','98s','87s','76s',
+        'KQo','KJo','QJo','JTo',
+      ]},
+      CO_vs_raise: { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s','A4s','KQs'],
+                     2: ['TT','99','AJs','ATs'] },
+      CO_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s','A4s','A3s','KQs'],
+                           2: ['TT','99','AJs','ATs','KJs'] },
+
+      // ── HJ ───────────────────────────────────────────────────────────────
       HJ_open: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33','22',
         'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
@@ -534,23 +710,55 @@ const PRESETS = [
         '98s','87s','76s','65s','54s',
         'KQo','KJo','KTo',
       ]},
-      UTG_open: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88','77','66',
-        'AKs','AQs','AJs','ATs','A9s','A5s',
-        'AKo','AQo',
-        'KQs','KJs','KTs',
-        'QJs','QTs',
-        'JTs','T9s','98s',
+      HJ_vs_limp: { 1: [
+        'AA','KK','QQ','JJ','TT','99','88',
+        'AKs','AQs','AJs','ATs','A9s','A8s','A5s',
+        'AKo','AQo','AJo','ATo',
+        'KQs','KJs','KTs','QJs','JTs','T9s','98s','87s',
+        'KQo','KJo','QJo',
       ]},
-      UTG_open_antes: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88','77','66',
-        'AKs','AQs','AJs','ATs','A9s','A5s','A4s',
-        'AKo','AQo',
-        'KQs','KJs','KTs',
-        'QJs','QTs',
-        'JTs','T9s','98s',
-        'KJo',
+      HJ_vs_limp_antes: { 1: [
+        'AA','KK','QQ','JJ','TT','99','88','77',
+        'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A5s','A4s',
+        'AKo','AQo','AJo','ATo',
+        'KQs','KJs','KTs','QJs','JTs','T9s','98s','87s','76s',
+        'KQo','KJo','QJo',
       ]},
+      HJ_vs_raise: { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s'],
+                     2: ['TT','AJs'] },
+      HJ_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s','A4s'],
+                           2: ['TT','99','AJs','ATs'] },
+
+      // ── UTG — Raise-or-Fold uniquement (22-44 limp autorisé en open deep) ─
+      UTG_open: {
+        1: [
+          'AA','KK','QQ','JJ','TT','99','88','77','66',
+          'AKs','AQs','AJs','ATs','A9s','A5s',
+          'AKo','AQo',
+          'KQs','KJs','KTs',
+          'QJs','QTs',
+          'JTs','T9s','98s',
+        ],
+        2: ['55','44','33','22'],   // set mining deep — limp uniquement
+      },
+      UTG_open_antes: {
+        1: [
+          'AA','KK','QQ','JJ','TT','99','88','77','66',
+          'AKs','AQs','AJs','ATs','A9s','A5s','A4s',
+          'AKo','AQo',
+          'KQs','KJs','KTs',
+          'QJs','QTs',
+          'JTs','T9s','98s',
+          'KJo',
+        ],
+        2: ['55','44','33','22'],
+      },
+      UTG_vs_limp: { 1: ['AA','KK','QQ','JJ','TT','AKs','AQs','AJs','AKo','AQo','KQs','QJs','JTs'] },
+      UTG_vs_limp_antes: { 1: ['AA','KK','QQ','JJ','TT','99','AKs','AQs','AJs','ATs','AKo','AQo','KQs','KJs','QJs','JTs'] },
+      UTG_vs_raise: { 3: ['AA','KK','QQ','JJ','AKs','AKo'] },
+      UTG_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','AKs','AKo'] },
+
+      // ── SB ───────────────────────────────────────────────────────────────
       SB_open_hu: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33','22',
         'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
@@ -633,21 +841,12 @@ const PRESETS = [
         'JTo','J9o',
         'T9o','T8o',
       ]},
+      SB_vs_raise: { 3: ['AA','KK','QQ','JJ','TT','AKs','AKo','AQs','AQo','A5s','A4s','A3s','A2s','KQs'],
+                     2: ['99','88','AJs','ATs','A9s','KJs','KTs','QJs','JTs','T9s'] },
+      SB_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','TT','99','AKs','AKo','AQs','AQo','A5s','A4s','A3s','A2s','KQs','KJs'],
+                           2: ['88','AJs','ATs','A9s','KTs','QJs','JTs','T9s','98s'] },
 
-      // ── Vs Raise ──────────────────────────────────────────────────────────
-      SB_vs_raise:   { 3: ['AA','KK','QQ','JJ','TT','AKs','AKo','AQs','AQo','A5s','A4s','A3s','A2s','KQs'],
-                       2: ['99','88','AJs','ATs','A9s','KJs','KTs','QJs','JTs','T9s'] },
-      BB_vs_raise:   { 3: ['AA','KK','QQ','JJ','TT','AKs','AKo','AQs','AQo','A5s','A4s','KQs'],
-                       2: ['99','88','77','AJs','ATs','KJs','KTs','QJs','JTs','T9s','98s'] },
-      BTN_vs_raise:  { 3: ['AA','KK','QQ','JJ','TT','AKs','AKo','AQs','A5s','A4s','A3s','KQs'],
-                       2: ['99','AJs','ATs','KJs','JTs'] },
-      CO_vs_raise:   { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s','A4s','KQs'],
-                       2: ['TT','99','AJs','ATs'] },
-      HJ_vs_raise:   { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s'],
-                       2: ['TT','AJs'] },
-      UTG_vs_raise:  { 3: ['AA','KK','QQ','JJ','AKs','AKo'] },
-
-      // ── Vs Open (BB) ──────────────────────────────────────────────────────
+      // ── BB ───────────────────────────────────────────────────────────────
       BB_vs_open: {
         3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s','A4s','A3s','A2s','KQs'],
         2: [
@@ -667,49 +866,66 @@ const PRESETS = [
           'QJo','QTo','JTo','T9o',
         ],
       },
-
-      // ── Vs Limp ───────────────────────────────────────────────────────────
-      BTN_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33','22',
-        'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
-        'AKo','AQo','AJo','ATo','A9o','A8o',
-        'KQs','KJs','KTs','K9s','K8s',
-        'QJs','QTs','Q9s','JTs','J9s',
-        'T9s','T8s','98s','97s','87s','86s','76s','75s','65s','54s',
-        'KQo','KJo','KTo','QJo','QTo','JTo','T9o',
-      ]},
-      CO_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88','77','66','55',
-        'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A5s',
-        'AKo','AQo','AJo','ATo',
-        'KQs','KJs','KTs','K9s','QJs','QTs','JTs','J9s',
-        'T9s','T8s','98s','87s','76s','65s','54s',
-        'KQo','KJo','QJo','QTo',
-      ]},
-      HJ_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88','77',
-        'AKs','AQs','AJs','ATs','A9s','A8s','A5s',
-        'AKo','AQo','AJo','ATo',
-        'KQs','KJs','KTs','QJs','QTs','JTs',
-        'T9s','98s','87s','76s',
-        'KQo','KJo','QJo',
-      ]},
-      UTG_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88',
-        'AKs','AQs','AJs','ATs','A9s',
-        'AKo','AQo','AJo',
-        'KQs','KJs','QJs','JTs','T9s',
-        'KQo','KJo',
-      ]},
-      BB_vs_limp: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88','77','66','55','44','33','22',
-        'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
-        'AKo','AQo','AJo','ATo','A9o',
-        'KQs','KJs','KTs','K9s','K8s',
-        'QJs','QTs','Q9s','JTs','J9s',
-        'T9s','T8s','98s','97s','87s','86s','76s','75s','65s','54s',
-        'KQo','KJo','KTo','QJo','QTo','JTo',
-      ]},
+      BB_vs_open_antes: {
+        3: ['AA','KK','QQ','JJ','TT','AKs','AKo','AQs','A5s','A4s','A3s','A2s','KQs'],
+        2: [
+          '99','88','77','66','55','44','33','22',
+          'AQo','AJs','ATs','A9s','A8s','A7s','A6s',
+          'AJo','ATo','A9o',
+          'KJs','KTs','K9s','K8s',
+          'KQo','KJo','KTo',
+          'QJs','QTs','Q9s','Q8s',
+          'JTs','J9s','J8s',
+          'T9s','T8s',
+          '98s','97s',
+          '87s','86s',
+          '76s','75s',
+          '65s','64s',
+          '54s',
+          'QJo','QTo','JTo','T9o','J9o',
+        ],
+      },
+      BB_vs_limp: {
+        1: [
+          'AA','KK','QQ','JJ','TT','99','88',
+          'AKs','AQs','AJs','ATs','A9s','A5s','A4s','A3s','A2s',
+          'AKo','AQo','AJo','ATo',
+          'KQs','KJs','KTs','K9s','QJs','QTs','JTs','J9s','T9s','T8s','98s','87s','76s',
+          'KQo','KJo','KTo','QJo',
+        ],
+        2: [
+          '77','66','55','44','33','22',
+          'A8s','A7s','A6s',
+          'A9o','A8o','A7o',
+          'K8s','K7s','K6s','K5s','K4s','K3s','K2s',
+          'Q9s','Q8s','Q7s','Q6s',
+          'J8s','J7s',
+          'T7s','T6s',
+          '97s','96s','86s','85s','75s','74s','65s','64s','54s','53s',
+        ],
+      },
+      BB_vs_limp_antes: {
+        1: [
+          'AA','KK','QQ','JJ','TT','99','88','77',
+          'AKs','AQs','AJs','ATs','A9s','A8s','A5s','A4s','A3s','A2s',
+          'AKo','AQo','AJo','ATo','A9o',
+          'KQs','KJs','KTs','K9s','K8s','QJs','QTs','JTs','J9s','T9s','T8s','98s','97s','87s','86s','76s','75s',
+          'KQo','KJo','KTo','QJo','JTo',
+        ],
+        2: [
+          '66','55','44','33','22',
+          'A7s','A6s',
+          'A8o','A7o','A6o',
+          'K7s','K6s','K5s','K4s','K3s','K2s',
+          'Q8s','Q7s','Q6s',
+          'J7s','J6s',
+          'T6s','65s','64s','54s','53s',
+        ],
+      },
+      BB_vs_raise: { 3: ['AA','KK','QQ','JJ','TT','AKs','AKo','AQs','AQo','A5s','A4s','KQs'],
+                     2: ['99','88','77','AJs','ATs','KJs','KTs','QJs','JTs','T9s','98s'] },
+      BB_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','TT','99','AKs','AKo','AQs','AQo','A5s','A4s','A3s','KQs','KJs'],
+                           2: ['88','77','AJs','ATs','A9s','KTs','QJs','JTs','T9s','98s','87s'] },
     }),
   },
 ];
