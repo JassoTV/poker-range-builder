@@ -10,16 +10,13 @@
 //   {POS}_{sitId}_antes     antes variant
 //
 // Situations per position (from SITUATIONS in app.js):
-//   BTN/CO/HJ/UTG : open | vs_limp | vs_raise
-//   SB            : open_hu | open_multi | vs_raise
-//   BB            : vs_open | vs_limp | vs_raise
+//   BTN/CO/HJ : open | vs_limp | vs_raise
+//   UTG       : open | vs_raise  (pas de vs_limp — UTG est 1er à parler)
+//   SB        : open_hu | open_multi | vs_raise
+//   BB        : vs_open | vs_limp | vs_raise
 //
-// vs_limp logic (all positions except BB):
-//   ISO raise = strong pairs (77+/88+/99+ depending on position) + suited aces + suited connectors
-//   Small pairs 22-66 = fold (no ISO raise from non-BB positions)
-//   UTG = Raise-or-Fold only (no Call/Limp) in vs_limp AND vs_raise
-//
-// BB vs_limp: action 1 = ISO raise, action 2 = check/defend
+// vs_raise logic: action 3 = 3-Bet/Raise, action 2 = Call (cold call)
+// BB vs_limp:     action 1 = ISO raise, action 2 = check/defend
 
 function _buildPresetState(def) {
   const state = {};
@@ -145,21 +142,19 @@ const PRESETS = [
       HJ_vs_raise: { 3: ['AA','KK','QQ','AKs','AKo'] },
       HJ_vs_raise_antes: { 3: ['AA','KK','QQ','AKs','AKo'] },
 
-      // ── UTG — Raise-or-Fold uniquement ────────────────────────────────────
+      // ── UTG — Raise-or-Fold uniquement (pas de vs_limp : UTG est 1er à parler)
       UTG_open: { 1: [
-        'AA','KK','QQ','JJ','TT','99','88','77',
+        'AA','KK','QQ','JJ','TT','99','88','77','66',
         'AKs','AQs','AJs','ATs',
-        'AKo','AQo','AJo',
+        'AKo','AQo',
         'KQs',
       ]},
       UTG_open_antes: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66',
         'AKs','AQs','AJs','ATs','A9s',
-        'AKo','AQo','AJo',
+        'AKo','AQo',
         'KQs','KJs',
       ]},
-      UTG_vs_limp: { 1: ['AA','KK','QQ','JJ','AKs','AKo'] },
-      UTG_vs_limp_antes: { 1: ['AA','KK','QQ','JJ','TT','AKs','AQs','AKo'] },
       UTG_vs_raise: { 3: ['AA','KK','AKs'] },
       UTG_vs_raise_antes: { 3: ['AA','KK','QQ','AKs'] },
 
@@ -399,7 +394,7 @@ const PRESETS = [
       HJ_vs_raise: { 3: ['AA','KK','QQ','AKs','AKo','AQs'] },
       HJ_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s'] },
 
-      // ── UTG — Raise-or-Fold uniquement ────────────────────────────────────
+      // ── UTG — Raise-or-Fold uniquement (pas de vs_limp : UTG est 1er à parler)
       UTG_open: { 1: [
         'AA','KK','QQ','JJ','TT','99','88','77','66',
         'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s',
@@ -422,8 +417,6 @@ const PRESETS = [
         'KQo','KJo','KTo',
         'QJo',
       ]},
-      UTG_vs_limp: { 1: ['AA','KK','QQ','JJ','TT','AKs','AQs','AKo','AQo','KQs'] },
-      UTG_vs_limp_antes: { 1: ['AA','KK','QQ','JJ','TT','99','AKs','AQs','AJs','AKo','AQo','KQs','KJs'] },
       UTG_vs_raise: { 3: ['AA','KK','AKs','AKo'] },
       UTG_vs_raise_antes: { 3: ['AA','KK','QQ','AKs','AKo'] },
 
@@ -729,34 +722,29 @@ const PRESETS = [
       HJ_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','AKs','AKo','AQs','A5s','A4s'],
                            2: ['TT','99','AJs','ATs'] },
 
-      // ── UTG — Raise-or-Fold uniquement (22-44 limp autorisé en open deep) ─
-      UTG_open: {
-        1: [
-          'AA','KK','QQ','JJ','TT','99','88','77','66',
-          'AKs','AQs','AJs','ATs','A9s','A5s',
-          'AKo','AQo',
-          'KQs','KJs','KTs',
-          'QJs','QTs',
-          'JTs','T9s','98s',
-        ],
-        2: ['55','44','33','22'],   // set mining deep — limp uniquement
-      },
-      UTG_open_antes: {
-        1: [
-          'AA','KK','QQ','JJ','TT','99','88','77','66',
-          'AKs','AQs','AJs','ATs','A9s','A5s','A4s',
-          'AKo','AQo',
-          'KQs','KJs','KTs',
-          'QJs','QTs',
-          'JTs','T9s','98s',
-          'KJo',
-        ],
-        2: ['55','44','33','22'],
-      },
-      UTG_vs_limp: { 1: ['AA','KK','QQ','JJ','TT','AKs','AQs','AJs','AKo','AQo','KQs','QJs','JTs'] },
-      UTG_vs_limp_antes: { 1: ['AA','KK','QQ','JJ','TT','99','AKs','AQs','AJs','ATs','AKo','AQo','KQs','KJs','QJs','JTs'] },
-      UTG_vs_raise: { 3: ['AA','KK','QQ','JJ','AKs','AKo'] },
-      UTG_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','AKs','AKo'] },
+      // ── UTG — Raise-or-Fold uniquement (pas de vs_limp : UTG est 1er à parler)
+      UTG_open: { 1: [
+        'AA','KK','QQ','JJ','TT','99','88','77','66',
+        'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s',
+        'AKo','AQo','AJo',
+        'KQs','KJs','KTs','K9s',
+        'QJs','QTs','Q9s',
+        'JTs','J9s',
+        'T9s',
+        'KQo',
+      ]},
+      UTG_open_antes: { 1: [
+        'AA','KK','QQ','JJ','TT','99','88','77','66',
+        'AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s',
+        'AKo','AQo','AJo',
+        'KQs','KJs','KTs','K9s',
+        'QJs','QTs','Q9s',
+        'JTs','J9s',
+        'T9s','98s','87s',
+        'KQo','KTo',
+      ]},
+      UTG_vs_raise: { 3: ['AA','KK','QQ','JJ','TT','AKs','AKo','A5s','A4s','A3s','A2s'] },
+      UTG_vs_raise_antes: { 3: ['AA','KK','QQ','JJ','TT','99','AKs','AKo','A5s','A4s','A3s','A2s'] },
 
       // ── SB ───────────────────────────────────────────────────────────────
       SB_open_hu: { 1: [

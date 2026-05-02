@@ -80,7 +80,6 @@ const SITUATIONS = {
   ],
   UTG: [
     { id:'open',     label: T.sitOpen },
-    { id:'vs_limp',  label: T.sitVsLimp },
     { id:'vs_raise', label: T.sitVsRaise },
   ],
   SB: [
