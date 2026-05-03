@@ -292,6 +292,33 @@
     }
     .btn-quiz-back:hover { background: var(--bg3); color: var(--text); }
 
+    /* history */
+    .quiz-history { margin-top: 24px; text-align: left; }
+    .hist-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text3);
+      margin-bottom: 8px;
+    }
+    .hist-list { display: flex; flex-direction: column; gap: 4px; }
+    .hist-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 10px;
+      background: var(--bg3);
+      border-radius: 5px;
+      font-size: 11px;
+    }
+    .hist-date  { color: var(--text3); flex: 1; }
+    .hist-score { color: var(--text2); font-variant-numeric: tabular-nums; min-width: 36px; text-align: right; }
+    .hist-pct   { font-weight: 700; min-width: 36px; text-align: right; }
+    .hist-pct-good { color: #7ecc7e; }
+    .hist-pct-ok   { color: #e8c040; }
+    .hist-pct-bad  { color: #f08080; }
+
     @media (max-width: 420px) {
       .quiz-actions { grid-template-columns: 1fr; }
       .quiz-hand    { font-size: 56px; }
@@ -372,6 +399,7 @@
           <button class="btn-quiz-restart" id="btnRestart">Rejouer</button>
           <a href="index.html" class="btn-quiz-back">← Retour à l'outil</a>
         </div>
+        <div id="quizHistory" class="quiz-history"></div>
       </div>
 
     </div>
@@ -380,8 +408,10 @@
 </div>
 
 <script>
-  // Dev access — quiz.html?dev=true bypasses the locked screen
-  if (new URLSearchParams(location.search).get('dev') === 'true') {
+  // Pro access — ?dev=true OR pro_unlocked key in localStorage
+  const _isPro = new URLSearchParams(location.search).get('dev') === 'true'
+              || localStorage.getItem('pro_unlocked') === 'true';
+  if (_isPro) {
     document.getElementById('quizLocked').style.display = 'none';
     document.getElementById('quizApp').style.display    = '';
   }

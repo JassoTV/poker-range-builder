@@ -2,7 +2,9 @@
 
 // ── SHARED DATA (mirrors app.js — no import in vanilla JS) ───────────────────
 
-const FR = navigator.language?.startsWith('fr');
+const FR  = navigator.language?.startsWith('fr');
+const DEV = new URLSearchParams(location.search).get('dev') === 'true'
+          || localStorage.getItem('pro_unlocked') === 'true';
 
 const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
 
@@ -26,7 +28,6 @@ const SITUATIONS = {
   ],
   UTG: [
     { id:'open',     label: FR ? 'Open (1er)'      : 'Open (1st in)' },
-    { id:'vs_limp',  label: 'vs Limp' },
     { id:'vs_raise', label: 'vs Raise' },
   ],
   SB: [
@@ -201,6 +202,46 @@ function handleAnswer(chosenId) {
 
 // ── RESULTS ───────────────────────────────────────────────────────────────────
 
+// ── HISTORY ───────────────────────────────────────────────────────────────────
+
+function saveHistory(total) {
+  const entry = {
+    date:   new Date().toISOString(),
+    preset: (() => { try { return JSON.parse(localStorage.getItem('prb_active_preset') || 'null'); } catch(_) { return null; } })(),
+    score,
+    total,
+    missed: missed.map(m => ({ hand: m.q.hand, pos: m.q.pos, sit: m.q.sit.id, correct: m.q.actionId })),
+  };
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('prb_history') || '[]'); } catch(_) {}
+  hist.unshift(entry);
+  if (hist.length > 20) hist = hist.slice(0, 20);
+  localStorage.setItem('prb_history', JSON.stringify(hist));
+}
+
+function renderHistory() {
+  const el = document.getElementById('quizHistory');
+  if (!el) return;
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('prb_history') || '[]'); } catch(_) {}
+  if (hist.length === 0) { el.innerHTML = ''; return; }
+  const recent = hist.slice(0, 5);
+  const title  = FR ? 'Dernières sessions' : 'Recent sessions';
+  const rows = recent.map(h => {
+    const d    = new Date(h.date);
+    const date = d.toLocaleDateString(FR ? 'fr-FR' : 'en-US', { day:'2-digit', month:'short' });
+    const time = d.toLocaleTimeString(FR ? 'fr-FR' : 'en-US', { hour:'2-digit', minute:'2-digit' });
+    const pct  = h.total > 0 ? Math.round(h.score / h.total * 100) : 0;
+    const cls  = pct >= 80 ? 'hist-pct-good' : pct >= 60 ? 'hist-pct-ok' : 'hist-pct-bad';
+    return `<div class="hist-row">
+      <span class="hist-date">${date} ${time}</span>
+      <span class="hist-score">${h.score}/${h.total}</span>
+      <span class="hist-pct ${cls}">${pct}%</span>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<p class="hist-title">${title}</p><div class="hist-list">${rows}</div>`;
+}
+
 function showResults() {
   const total = infiniteMode ? currentQ : Q_TOTAL;
   const pct   = total > 0 ? score / total : 0;
@@ -238,6 +279,8 @@ function showResults() {
     }
   }
 
+  saveHistory(total);
+  renderHistory();
   show('quizResults');
 }
 

@@ -3,7 +3,8 @@
 // ── I18N ─────────────────────────────────────────────────────────────────────
 
 const FR  = navigator.language?.startsWith('fr');
-const DEV = new URLSearchParams(location.search).get('dev') === 'true';
+const DEV = new URLSearchParams(location.search).get('dev') === 'true'
+         || localStorage.getItem('pro_unlocked') === 'true';
 
 const T = {
   headerSubtitle:   FR ? 'Construis et mémorise tes ranges préflop par position'

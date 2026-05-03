@@ -92,6 +92,49 @@
       text-decoration: none;
     }
     .back-link:hover { color: var(--text2); }
+
+    /* key entry */
+    .key-row {
+      display: flex;
+      gap: 8px;
+    }
+    .key-input {
+      flex: 1;
+      padding: 9px 12px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text);
+      font-size: 13px;
+      font-family: monospace;
+      letter-spacing: .05em;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .key-input:focus { border-color: var(--blue); }
+    .btn-activate {
+      padding: 9px 18px;
+      border-radius: 7px;
+      border: none;
+      background: var(--bg3);
+      color: var(--text2);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-activate:hover { background: var(--blue-act); color: var(--blue-text); border-color: var(--blue); }
+    .key-msg {
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 12px;
+      border-radius: 5px;
+    }
+    .key-msg.ok  { background: #1a3d1a; color: #7ecc7e; }
+    .key-msg.err { background: #3d0e0e; color: #f08080; }
   </style>
 </head>
 <body>
@@ -134,11 +177,9 @@
     <div class="plan-desc">Pour mémoriser et tester tes ranges en profondeur.</div>
     <ul class="feature-list">
       <li><span class="check">✓</span> Tout le gratuit</li>
-      <li>
-        <span class="check">✓</span> Quiz préflop interactif
-      </li>
-      <li><span class="locked">✦</span> Import / Export JSON — sauvegarde complète <span class="coming-soon">à venir</span></li>
-      <li><span class="locked">✦</span> Historique de sessions <span class="coming-soon">à venir</span></li>
+      <li><span class="check">✓</span> Quiz préflop interactif</li>
+      <li><span class="check">✓</span> Import / Export JSON — sauvegarde complète</li>
+      <li><span class="check">✓</span> Historique de sessions quiz</li>
       <li><span class="locked">✦</span> Comparaison de ranges <span class="coming-soon">à venir</span></li>
       <li><span class="locked">✦</span> Stats d'évolution <span class="coming-soon">à venir</span></li>
     </ul>
@@ -147,8 +188,61 @@
     </a>
   </div>
 
+  <!-- KEY ENTRY -->
+  <div class="plan-card" style="margin-top:8px;">
+    <div class="plan-name">J'ai déjà une clé</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">
+      Tu as reçu une clé Pro après ton achat.<br>Entre-la ci-dessous pour activer l'accès.
+    </p>
+    <div class="key-row">
+      <input type="text" id="proKeyInput" class="key-input" placeholder="PRO-XXXXXX-XX" autocomplete="off" spellcheck="false">
+      <button id="btnActivateKey" class="btn-activate">Activer</button>
+    </div>
+    <p id="keyMsg" class="key-msg" style="display:none"></p>
+  </div>
+
   <a href="index.html" class="back-link">← Retourner au Range Builder</a>
 </div>
 
+<script>
+  (function () {
+    const VALID_KEYS = ['PRO-RANGEPRO-V1'];
+
+    const input  = document.getElementById('proKeyInput');
+    const btn    = document.getElementById('btnActivateKey');
+    const msg    = document.getElementById('keyMsg');
+
+    // If already unlocked, show success state immediately
+    if (localStorage.getItem('pro_unlocked') === 'true') {
+      msg.textContent = '✓ Version Pro déjà activée sur cet appareil.';
+      msg.className   = 'key-msg ok';
+      msg.style.display = '';
+      input.disabled  = true;
+      btn.disabled    = true;
+    }
+
+    function activate() {
+      const key = input.value.trim().toUpperCase();
+      if (VALID_KEYS.includes(key)) {
+        localStorage.setItem('pro_unlocked', 'true');
+        msg.textContent   = '✓ Clé valide — version Pro activée !';
+        msg.className     = 'key-msg ok';
+        msg.style.display = '';
+        input.disabled    = true;
+        btn.disabled      = true;
+        setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+      } else {
+        msg.textContent   = '✗ Clé invalide. Vérifie ta confirmation d\'achat.';
+        msg.className     = 'key-msg err';
+        msg.style.display = '';
+        input.focus();
+        input.select();
+      }
+    }
+
+    btn.addEventListener('click', activate);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') activate(); });
+  })();
+</script>
 </body>
 </html>
