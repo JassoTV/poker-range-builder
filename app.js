@@ -350,6 +350,12 @@ function buildSidebar() {
     + '<p class="sb-p">Ranges vary by position because the number of players left to act changes your realizable equity and how often you end up out of position postflop.</p>';
 
   const changelog = [
+    { ver: 'v1.9', note: FR ? 'Clé Pro, historique quiz, finitions UI, README'
+                            : 'Pro key, quiz history, UI polish, README' },
+    { ver: 'v1.8', note: FR ? 'Système clé Pro (PRO-RANGEPRO-V1), JSON débloqué, historique quiz'
+                            : 'Pro key system, JSON unlocked, quiz session history' },
+    { ver: 'v1.7', note: FR ? 'Presets refaits entièrement (données solver), UTG sans vs_limp'
+                            : 'Full preset rewrite (solver data), UTG no vs_limp' },
     { ver: 'v1.6', note: FR ? 'Presets corrigés (Conservateur/Solide/Expert), panel situation, alignement UI'
                             : 'Corrected presets (Conservative/Solid/Expert), situation panel, UI alignment' },
     { ver: 'v1.5', note: FR ? 'Gumroad Pro, panel progression, notes par position, presets calibrés'
