@@ -1,18 +1,83 @@
-# Poker Range Builder
+<p align="center">
+  <img src="assets/og-image.png" alt="Poker Range Builder" width="100%">
+</p>
 
-Outil préflop dark-mode pour construire et mémoriser tes ranges par position.
+<h1 align="center">Poker Range Builder</h1>
 
-[Accéder à l'outil](https://jassotv.github.io/poker-range-builder/) · [Version Pro](https://jassotv.gumroad.com/l/poker-range-builder-pro)
+<p align="center">
+  Construis et mémorise tes ranges préflop par position — MTT &amp; cash game
+</p>
 
-## Ce que ça fait
+<p align="center">
+  <a href="https://jassotv.github.io/poker-range-builder/"><img src="https://img.shields.io/badge/demo-live-22c55e?style=flat-square&logo=github" alt="Live Demo"></a>
+  <a href="https://jassotv.gumroad.com/l/poker-range-builder-pro"><img src="https://img.shields.io/badge/PRO-2%2C99%E2%82%AC-22c55e?style=flat-square" alt="Gumroad PRO"></a>
+  <img src="https://img.shields.io/badge/version-v1.9-374151?style=flat-square" alt="v1.9">
+  <img src="https://img.shields.io/badge/stack-vanilla%20JS-f9fafb?style=flat-square" alt="Vanilla JS">
+</p>
 
-- Grille 13×13 interactive par position (BTN, CO, HJ, UTG, SB, BB)
-- Situations : open, vs limp, vs raise — avec et sans antes
-- Sauvegarde automatique dans ton navigateur
-- Export PNG pour tes notes
+---
 
-## Version Pro — 2,99€
+## Fonctionnalités
 
-Quiz préflop qui teste TES propres ranges, ranges pré-remplies (Conservateur / Solide / Expert), Import/Export JSON, historique de sessions.
+- **6 positions** : BTN · CO · HJ · UTG · SB · BB
+- **3 situations** : Open, vs Limp, vs Raise
+- **Actions** : Raise/Open · Call/Limp · 3-Bet · Fold
+- **Compteur de combos** en temps réel (% + nombre de combos)
+- **Notes par position** : mémorise tes annotations
+- **Export PNG** de la range courante
+- **Mode Antes** activable
+- **Persistance localStorage** — tes ranges sont sauvegardées automatiquement
 
-[Débloquer la version Pro](https://jassotv.gumroad.com/l/poker-range-builder-pro)
+---
+
+## Version PRO
+
+Débloque toutes les fonctionnalités avancées pour **2,99€ (accès à vie)**.
+
+👉 [Acheter sur Gumroad](https://jassotv.gumroad.com/l/poker-range-builder-pro)
+
+Clé d'activation à entrer sur la [page Pro](https://jassotv.github.io/poker-range-builder/premium.html).
+
+---
+
+## Installation / Usage
+
+Aucune installation requise. Le site tourne en pur HTML/CSS/JS.
+
+```bash
+git clone https://github.com/JassoTV/poker-range-builder.git
+cd poker-range-builder
+open index.html
+```
+
+Mode développeur (pro sans clé) :
+```
+https://jassotv.github.io/poker-range-builder/?dev=true
+```
+
+---
+
+## localStorage
+
+| Clé | Contenu |
+|-----|---------|
+| `prb_state` | Ranges sauvegardées |
+| `prb_notes` | Notes globales |
+| `prb_pos_notes` | Notes par position |
+| `pro_unlocked` | `"true"` si PRO activé |
+
+---
+
+## Roadmap
+
+- [ ] Clés uniques par achat (Vercel serverless)
+- [ ] Comparaison de deux ranges côte à côte
+- [ ] Distribution Discord (bot d'activation)
+- [ ] Mode quiz chronométré
+- [ ] Thème clair
+
+---
+
+## Licence
+
+Projet personnel — © JassoTV. Le code source est fourni à titre éducatif.
