@@ -40,34 +40,6 @@ Clé d'activation à entrer sur la [page Pro](https://jassotv.github.io/poker-ra
 
 ---
 
-## Installation / Usage
-
-Aucune installation requise. Le site tourne en pur HTML/CSS/JS.
-
-```bash
-git clone https://github.com/JassoTV/poker-range-builder.git
-cd poker-range-builder
-open index.html
-```
-
-Mode développeur (pro sans clé) :
-```
-https://jassotv.github.io/poker-range-builder/?dev=true
-```
-
----
-
-## localStorage
-
-| Clé | Contenu |
-|-----|---------|
-| `prb_state` | Ranges sauvegardées |
-| `prb_notes` | Notes globales |
-| `prb_pos_notes` | Notes par position |
-| `pro_unlocked` | `"true"` si PRO activé |
-
----
-
 ## Roadmap
 
 - [ ] Clés uniques par achat (Vercel serverless)
