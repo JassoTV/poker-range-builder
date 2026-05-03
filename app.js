@@ -398,7 +398,9 @@ function buildSidebar() {
            <button id="btnLoadPreset" class="sb-preset-load">${T.sbLoadPreset}</button>
          </div>
          <p id="presetDesc" class="sb-preset-desc">${firstDesc}</p>
-         <p class="sb-warning">${T.sbPresetWarning}</p>
+         <p class="sb-warning">${T.sbPresetWarning}
+           <button id="btnPresetExportFirst" class="sb-inline-export">${T.sbExport}</button>
+         </p>
        </div>`
     : `<div class="sb-pro-item">${lockedBtn(T.sbPresets, 'pro')}</div>`;
 
@@ -456,6 +458,7 @@ function buildSidebar() {
       });
     }
     document.getElementById('btnLoadPreset')?.addEventListener('click', loadPreset);
+    document.getElementById('btnPresetExportFirst')?.addEventListener('click', exportJSON);
     document.getElementById('btnSbExportJson')?.addEventListener('click', exportJSON);
     document.getElementById('btnSbImportJson')?.addEventListener('click', importJSON);
   } else {

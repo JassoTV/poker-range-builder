@@ -340,8 +340,8 @@
 
 <div class="quiz-page">
 
-  <!-- Locked by default — hidden when ?dev=true -->
-  <div id="quizLocked" class="quiz-locked">
+  <!-- Hidden by default — shown only if not Pro (avoids flash for Pro users) -->
+  <div id="quizLocked" class="quiz-locked" style="display:none">
     <div class="quiz-locked-badge">Pro ✦</div>
     <h2>Quiz préflop</h2>
     <p>Teste tes ranges sur des mains aléatoires.<br>
@@ -349,7 +349,7 @@
     <a href="premium.html" class="btn-quiz-pro">Voir la version Pro →</a>
   </div>
 
-  <!-- Quiz app — shown only with ?dev=true -->
+  <!-- Quiz app — shown when Pro -->
   <div id="quizApp" style="display:none">
     <div class="quiz-card">
       <p class="quiz-card-title">Quiz préflop</p>
@@ -410,12 +410,13 @@
 </div>
 
 <script>
-  // Pro access — ?dev=true OR pro_unlocked key in localStorage
+  // Runs synchronously before first paint — no flash
   const _isPro = new URLSearchParams(location.search).get('dev') === 'true'
               || localStorage.getItem('pro_unlocked') === 'true';
   if (_isPro) {
-    document.getElementById('quizLocked').style.display = 'none';
-    document.getElementById('quizApp').style.display    = '';
+    document.getElementById('quizApp').style.display = '';
+  } else {
+    document.getElementById('quizLocked').style.display = '';
   }
 </script>
 <script src="quiz.js"></script>
