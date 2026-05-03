@@ -78,5 +78,17 @@
 
 <script src="presets.js"></script>
 <script src="app.js"></script>
+<script>
+  // Pro badge in header — update after app.js has run
+  (function () {
+    const link = document.querySelector('a.pro-link[href="premium.html"]');
+    if (!link) return;
+    if (localStorage.getItem('pro_unlocked') === 'true') {
+      link.textContent     = 'Pro actif ✓';
+      link.style.color     = '#7ecc7e';
+      link.style.borderColor = '#7ecc7e';
+    }
+  })();
+</script>
 </body>
 </html>

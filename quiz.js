@@ -219,14 +219,9 @@ function saveHistory(total) {
   localStorage.setItem('prb_history', JSON.stringify(hist));
 }
 
-function renderHistory() {
-  const el = document.getElementById('quizHistory');
-  if (!el) return;
-  let hist = [];
-  try { hist = JSON.parse(localStorage.getItem('prb_history') || '[]'); } catch(_) {}
-  if (hist.length === 0) { el.innerHTML = ''; return; }
+function _histHTML(hist) {
   const recent = hist.slice(0, 5);
-  const title  = FR ? 'Dernières sessions' : 'Recent sessions';
+  const title  = FR ? 'Historique de tes sessions' : 'Your session history';
   const rows = recent.map(h => {
     const d    = new Date(h.date);
     const date = d.toLocaleDateString(FR ? 'fr-FR' : 'en-US', { day:'2-digit', month:'short' });
@@ -239,7 +234,17 @@ function renderHistory() {
       <span class="hist-pct ${cls}">${pct}%</span>
     </div>`;
   }).join('');
-  el.innerHTML = `<p class="hist-title">${title}</p><div class="hist-list">${rows}</div>`;
+  return `<p class="hist-title">${title}</p><div class="hist-list">${rows}</div>`;
+}
+
+function renderHistory() {
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('prb_history') || '[]'); } catch(_) {}
+  const html = hist.length > 0 ? _histHTML(hist) : '';
+  const elResults = document.getElementById('quizHistory');
+  const elStart   = document.getElementById('quizHistoryStart');
+  if (elResults) elResults.innerHTML = html;
+  if (elStart)   elStart.innerHTML   = html;
 }
 
 function showResults() {
@@ -302,6 +307,9 @@ document.querySelectorAll('.quiz-count-btn').forEach(btn => {
 });
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
+
+// Populate history on the start screen immediately
+renderHistory();
 
 document.getElementById('btnStartQuiz').addEventListener('click', startQuiz);
 

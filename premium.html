@@ -183,7 +183,7 @@
       <li><span class="locked">✦</span> Comparaison de ranges <span class="coming-soon">à venir</span></li>
       <li><span class="locked">✦</span> Stats d'évolution <span class="coming-soon">à venir</span></li>
     </ul>
-    <a href="https://jassotv.gumroad.com/l/poker-range-builder-pro" target="_blank" class="btn-unlock">
+    <a href="https://jassotv.gumroad.com/l/poker-range-builder-pro" target="_blank" class="btn-unlock" id="btnMainUnlock">
       Débloquer la version Pro — 2,99€
     </a>
   </div>
@@ -214,6 +214,16 @@
 
     // If already unlocked, show success state immediately
     if (localStorage.getItem('pro_unlocked') === 'true') {
+      // Main CTA button
+      const mainBtn = document.getElementById('btnMainUnlock');
+      if (mainBtn) {
+        mainBtn.textContent  = 'Pro déjà activé ✓';
+        mainBtn.style.background    = '#1a3d1a';
+        mainBtn.style.color         = '#7ecc7e';
+        mainBtn.style.cursor        = 'default';
+        mainBtn.style.pointerEvents = 'none';
+      }
+      // Key entry form
       msg.textContent = '✓ Version Pro déjà activée sur cet appareil.';
       msg.className   = 'key-msg ok';
       msg.style.display = '';
