@@ -40,16 +40,6 @@ Clé d'activation à entrer sur la [page Pro](https://jassotv.github.io/poker-ra
 
 ---
 
-## Roadmap
-
-- [ ] Clés uniques par achat (Vercel serverless)
-- [ ] Comparaison de deux ranges côte à côte
-- [ ] Distribution Discord (bot d'activation)
-- [ ] Mode quiz chronométré
-- [ ] Thème clair
-
----
-
 ## Licence
 
 Projet personnel — © JassoTV. Le code source est fourni à titre éducatif.
